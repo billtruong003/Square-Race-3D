@@ -17,6 +17,7 @@ namespace CubeSim.EditorTools
         public const string LibraryPath = "Assets/CubeSim/Data/AudioLibrary.asset";
         private const string EtfxSound = "Assets/Epic Toon FX/Sound/";
         private const string Sfx = "Assets/CubeSim/Audio/SFX/";
+        private const string BgmFolder = "Assets/BGM_LOOP";
 
         private struct Pick
         {
@@ -41,6 +42,11 @@ namespace CubeSim.EditorTools
 
             // The win at the end.
             new Pick { Id = SimSoundId.GoalReached, Clip = EtfxSound + "etfx_explosion_sparkle2.wav", Volume = 0.55f, PitchMin = 1.0f, PitchMax = 1.0f },
+
+            // Breakable objects - the consumable/glass-style props. A bright pitched-up crack per
+            // hit, and the user-supplied real glass shatter when the thing gives way.
+            new Pick { Id = SimSoundId.WallHit,   Clip = EtfxSound + "etfx_target_hit.wav", Volume = 0.35f, PitchMin = 1.25f, PitchMax = 1.45f },
+            new Pick { Id = SimSoundId.WallBreak, Clip = Sfx + "GlassBreak.mp3",            Volume = 0.55f, PitchMin = 1.0f,  PitchMax = 1.0f },
         };
 
         /// <summary>Stand-in for the eat pop until the real Among-Us eat sample is provided.</summary>
@@ -83,14 +89,31 @@ namespace CubeSim.EditorTools
             bool isNew = library == null;
             if (isNew) library = ScriptableObject.CreateInstance<AudioLibrary>();
 
-            // No bed at all: the collision piano is the whole soundtrack.
+            // Legacy single-track bed stays empty; music comes from the mode below.
             library.Configure(null, 0f, entries);
+
+            // The BGM pool: every clip under Assets/BGM_LOOP, shuffled at runtime without
+            // repeats. Flip the mode on the asset to CollisionMelody to get the piano back.
+            var pool = new List<AudioClip>();
+            if (Directory.Exists(BgmFolder))
+            {
+                foreach (string guid in AssetDatabase.FindAssets("t:AudioClip", new[] { BgmFolder }))
+                {
+                    var clip = AssetDatabase.LoadAssetAtPath<AudioClip>(AssetDatabase.GUIDToAssetPath(guid));
+                    if (clip != null) pool.Add(clip);
+                }
+            }
+
+            library.ConfigureMusic(
+                pool.Count > 0 ? AudioMusicMode.BackgroundPool : AudioMusicMode.CollisionMelody,
+                pool, 0.1f);
 
             if (isNew) AssetDatabase.CreateAsset(library, LibraryPath);
             EditorUtility.SetDirty(library);
             AssetDatabase.SaveAssets();
 
-            Debug.Log($"[CubeSim] Audio library built: {entries.Count} sounds ({missing} missing), no music bed.");
+            Debug.Log($"[CubeSim] Audio library built: {entries.Count} sounds ({missing} missing), " +
+                      $"bgm pool {pool.Count} tracks, mode {library.MusicMode}.");
             return AssetDatabase.LoadAssetAtPath<AudioLibrary>(LibraryPath);
         }
     }

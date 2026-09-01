@@ -2776,7 +2776,7 @@ MonoBehaviour:
   accentOverride: {r: 0.6, g: 0.3, b: 0.95, a: 1}
   showProgress: 1
   hitFlashDuration: 0.12
---- !u!1 &1981671671386634870
+--- !u!1 &1790527637740517381
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2784,8 +2784,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8037953666250941155}
-  - component: {fileID: 6631861491724152030}
+  - component: {fileID: 1982459275999880363}
+  - component: {fileID: 7995483846685015353}
   m_Layer: 0
   m_Name: FoodArea
   m_TagString: Untagged
@@ -2793,13 +2793,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8037953666250941155
+--- !u!4 &1982459275999880363
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1981671671386634870}
+  m_GameObject: {fileID: 1790527637740517381}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 25.5, y: 0.2, z: -10.961538}
@@ -2808,13 +2808,13 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5360938506223020626}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6631861491724152030
+--- !u!114 &7995483846685015353
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1981671671386634870}
+  m_GameObject: {fileID: 1790527637740517381}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aacf3275e6e17c44b994e97aef373bbe, type: 3}
@@ -3472,7 +3472,7 @@ MonoBehaviour:
   accentOverride: {r: 1, g: 0.6, b: 0.1, a: 1}
   showProgress: 1
   hitFlashDuration: 0.12
---- !u!1 &2831624107650965071
+--- !u!1 &2474798776944317844
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3480,44 +3480,44 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6469030147062356102}
-  - component: {fileID: 890056915989605486}
+  - component: {fileID: 5347670552522002127}
+  - component: {fileID: 3053173038510048921}
   m_Layer: 0
-  m_Name: FoodArea
+  m_Name: WeaponArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6469030147062356102
+--- !u!4 &5347670552522002127
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2831624107650965071}
+  m_GameObject: {fileID: 2474798776944317844}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 25.5, y: 0.2, z: 10.961538}
-  m_LocalScale: {x: 5.666666, y: 1, z: 7.307692}
+  m_LocalPosition: {x: 26.208332, y: 0.2, z: 0}
+  m_LocalScale: {x: 4.25, y: 1, z: 5.8461537}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5360938506223020626}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &890056915989605486
+--- !u!114 &3053173038510048921
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2831624107650965071}
+  m_GameObject: {fileID: 2474798776944317844}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aacf3275e6e17c44b994e97aef373bbe, type: 3}
+  m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.FoodArea
+  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
   id: 
-  spacing: 2.4
+  weight: 1
 --- !u!1 &2997960302914450534
 GameObject:
   m_ObjectHideFlags: 0
@@ -5267,6 +5267,52 @@ MonoBehaviour:
   accentOverride: {r: 1, g: 0.6, b: 0.1, a: 1}
   showProgress: 1
   hitFlashDuration: 0.12
+--- !u!1 &4686041220981507377
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8761892130247129628}
+  - component: {fileID: 5759707143097453216}
+  m_Layer: 0
+  m_Name: FoodArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8761892130247129628
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4686041220981507377}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 25.5, y: 0.2, z: 10.961538}
+  m_LocalScale: {x: 5.666666, y: 1, z: 7.307692}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5360938506223020626}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5759707143097453216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4686041220981507377}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aacf3275e6e17c44b994e97aef373bbe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.FoodArea
+  id: 
+  spacing: 2.4
 --- !u!1 &4861436303410406061
 GameObject:
   m_ObjectHideFlags: 0
@@ -5606,52 +5652,6 @@ MonoBehaviour:
   accentOverride: {r: 1, g: 0.6, b: 0.1, a: 1}
   showProgress: 1
   hitFlashDuration: 0.12
---- !u!1 &5203607215101709214
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6921442400004404122}
-  - component: {fileID: 9094678584524586335}
-  m_Layer: 0
-  m_Name: WeaponArea
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &6921442400004404122
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5203607215101709214}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 26.208332, y: 0.2, z: 0}
-  m_LocalScale: {x: 4.25, y: 1, z: 5.8461537}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5360938506223020626}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9094678584524586335
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5203607215101709214}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
-  id: 
-  weight: 1
 --- !u!1 &5272515354728106124
 GameObject:
   m_ObjectHideFlags: 0
@@ -6268,52 +6268,6 @@ MonoBehaviour:
   accentOverride: {r: 0.95, g: 0.4, b: 0.85, a: 1}
   showProgress: 1
   hitFlashDuration: 0.12
---- !u!1 &5674015565454373793
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7495996720689636351}
-  - component: {fileID: 8145758034805392061}
-  m_Layer: 0
-  m_Name: FoodArea
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7495996720689636351
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5674015565454373793}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -25.5, y: 0.2, z: -10.961538}
-  m_LocalScale: {x: 5.666666, y: 1, z: 7.307692}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5360938506223020626}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8145758034805392061
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5674015565454373793}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aacf3275e6e17c44b994e97aef373bbe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.FoodArea
-  id: 
-  spacing: 2.4
 --- !u!1 &5750967311670303766
 GameObject:
   m_ObjectHideFlags: 0
@@ -7521,6 +7475,52 @@ MonoBehaviour:
   accentOverride: {r: 0.95, g: 0.2, b: 0.2, a: 1}
   showProgress: 1
   hitFlashDuration: 0.12
+--- !u!1 &6362270389080582522
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8164666035559457667}
+  - component: {fileID: 5001179951397276356}
+  m_Layer: 0
+  m_Name: FoodArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8164666035559457667
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6362270389080582522}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -25.5, y: 0.2, z: -10.961538}
+  m_LocalScale: {x: 5.666666, y: 1, z: 7.307692}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5360938506223020626}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5001179951397276356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6362270389080582522}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aacf3275e6e17c44b994e97aef373bbe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.FoodArea
+  id: 
+  spacing: 2.4
 --- !u!1 &6417935134147624482
 GameObject:
   m_ObjectHideFlags: 0
@@ -11201,11 +11201,11 @@ Transform:
   - {fileID: 2979254786039201802}
   - {fileID: 2199298327991214195}
   - {fileID: 124504235012069256}
-  - {fileID: 6921442400004404122}
+  - {fileID: 5347670552522002127}
   - {fileID: 331760318785925944}
-  - {fileID: 6469030147062356102}
-  - {fileID: 7495996720689636351}
-  - {fileID: 8037953666250941155}
+  - {fileID: 8761892130247129628}
+  - {fileID: 8164666035559457667}
+  - {fileID: 1982459275999880363}
   m_Father: {fileID: 9096068613330462693}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8527182531775462635

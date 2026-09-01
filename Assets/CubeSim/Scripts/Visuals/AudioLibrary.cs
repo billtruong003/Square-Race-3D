@@ -25,6 +25,19 @@ namespace CubeSim.Visuals
         FoodEaten = 15
     }
 
+    /// <summary>What carries the music of an episode.</summary>
+    public enum AudioMusicMode
+    {
+        /// <summary>Collisions perform a famous tune note by note; no background track.</summary>
+        CollisionMelody = 0,
+
+        /// <summary>
+        /// A quiet background track from the BGM pool, shuffled without repeats; collision notes
+        /// are off and only the story-beat SFX speak over it.
+        /// </summary>
+        BackgroundPool = 1
+    }
+
     /// <summary>
     /// Maps sound ids to clips, mirroring the VFX library. The mix numbers encode what was measured
     /// off the reference channel: a music bed around -30 LUFS with sparse one-shots spiking well
@@ -53,10 +66,23 @@ namespace CubeSim.Visuals
         [Range(0f, 1f)]
         [SerializeField] private float musicVolume = 0.16f;
 
+        [Tooltip("How music happens: collision melody, or a shuffled background pool.")]
+        [SerializeField] private AudioMusicMode musicMode = AudioMusicMode.CollisionMelody;
+
+        [Tooltip("Tracks the BackgroundPool mode shuffles through - no repeats until all played.")]
+        [SerializeField] private List<AudioClip> bgmPool = new List<AudioClip>();
+
+        [Tooltip("BGM level. Sits well under the SFX - background means background.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float bgmVolume = 0.1f;
+
         [SerializeField] private List<Entry> entries = new List<Entry>();
 
         public AudioClip Music => music;
         public float MusicVolume => musicVolume;
+        public AudioMusicMode MusicMode => musicMode;
+        public IReadOnlyList<AudioClip> BgmPool => bgmPool;
+        public float BgmVolume => bgmVolume;
         public IReadOnlyList<Entry> Entries => entries;
 
         public Entry Find(SimSoundId id)
@@ -74,6 +100,13 @@ namespace CubeSim.Visuals
             music = musicClip;
             musicVolume = musicLevel;
             entries = value;
+        }
+
+        public void ConfigureMusic(AudioMusicMode mode, List<AudioClip> pool, float volume)
+        {
+            musicMode = mode;
+            bgmPool = pool ?? new List<AudioClip>();
+            bgmVolume = volume;
         }
     }
 }

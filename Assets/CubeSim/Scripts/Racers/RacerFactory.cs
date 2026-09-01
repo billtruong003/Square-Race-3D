@@ -62,11 +62,16 @@ namespace CubeSim.Racers
                 // One call sets the model tint and the trail together - no independent colour config.
                 visual.SetColor(color, theme.racerEmission, setup.tintModels);
 
-                string displayName = entry != null && !string.IsNullOrEmpty(entry.displayName)
-                    ? entry.displayName
-                    : entry != null && entry.id != null && entry.id.StartsWith("Pet_")
-                        ? entry.id.Substring(4).ToUpperInvariant()
-                        : definition.id;
+                // The eye cube is one model for everyone, so identity comes from the colour: the
+                // leaderboard shouts RED and BLUE the way the reference channels do.
+                string displayName = entry != null && string.Equals(entry.id, "EyeCube",
+                        System.StringComparison.OrdinalIgnoreCase)
+                    ? ColorNames.NameFor(color)
+                    : entry != null && !string.IsNullOrEmpty(entry.displayName)
+                        ? entry.displayName
+                        : entry != null && entry.id != null && entry.id.StartsWith("Pet_")
+                            ? entry.id.Substring(4).ToUpperInvariant()
+                            : definition.id;
 
                 var racer = new Racer(i, definition.id, root.transform, visual)
                 {
@@ -118,17 +123,31 @@ namespace CubeSim.Racers
             foreach (AudioListener stray in model.GetComponentsInChildren<AudioListener>(true)) Object.Destroy(stray);
             foreach (Light stray in model.GetComponentsInChildren<Light>(true)) Object.Destroy(stray);
 
-            // Visual size is deliberately decoupled from the collision box: making racers read
-            // bigger must never change corridor legality or the crush rules.
-            float targetHeight = size * Mathf.Max(0.1f, setup.visualHeightRatio)
-                                 * Mathf.Max(0.05f, setup.racerVisualScale);
+            if (model.GetComponentInChildren<EyeCubeVisual>(true) != null)
+            {
+                // The eye cube is a centre-pivot unit cube: fit its edge to the collision box and
+                // sit it exactly at the box centre. The authored proportions inside the prefab
+                // (the hand-tuned eye plane) only ever scale uniformly with it.
+                float edge = size * Mathf.Max(0.05f, setup.racerVisualScale)
+                             * Mathf.Max(0.01f, entry.scaleMultiplier);
+                model.transform.localScale = Vector3.one * edge;
+                model.transform.localPosition = Vector3.zero;
+                model.transform.localRotation = Quaternion.identity;
+            }
+            else
+            {
+                // Visual size is deliberately decoupled from the collision box: making racers read
+                // bigger must never change corridor legality or the crush rules.
+                float targetHeight = size * Mathf.Max(0.1f, setup.visualHeightRatio)
+                                     * Mathf.Max(0.05f, setup.racerVisualScale);
 
-            float nativeHeight = Mathf.Max(0.01f, entry.nativeHeight);
-            float scale = targetHeight / nativeHeight * Mathf.Max(0.01f, entry.scaleMultiplier);
+                float nativeHeight = Mathf.Max(0.01f, entry.nativeHeight);
+                float scale = targetHeight / nativeHeight * Mathf.Max(0.01f, entry.scaleMultiplier);
 
-            model.transform.localScale = Vector3.one * scale;
-            // The simulation root sits at box centre; the model's feet belong on the ground.
-            model.transform.localPosition = new Vector3(0f, -size * 0.5f + entry.yOffset, 0f);
+                model.transform.localScale = Vector3.one * scale;
+                // The simulation root sits at box centre; the model's feet belong on the ground.
+                model.transform.localPosition = new Vector3(0f, -size * 0.5f + entry.yOffset, 0f);
+            }
 
             var animator = model.GetComponent<Animator>();
             if (animator != null && entry.animatorController != null)

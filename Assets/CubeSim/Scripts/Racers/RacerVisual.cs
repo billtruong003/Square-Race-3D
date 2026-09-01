@@ -29,6 +29,7 @@ namespace CubeSim.Racers
 
         private Transform _handBone;
         private WeaponAnchor _anchor;
+        private EyeCubeVisual _eyes;
         private bool _dead;
         private RacerTrail _trail;
         private float _deathTipTimer = -1f;
@@ -49,6 +50,7 @@ namespace CubeSim.Racers
             animator = boundAnimator;
             model = boundModel;
             _handBone = handBone;
+            _eyes = boundModel != null ? boundModel.GetComponentInChildren<EyeCubeVisual>() : null;
 
             if (animator != null)
             {
@@ -109,14 +111,24 @@ namespace CubeSim.Racers
         public void SampleTrail(Vector3 simulationPosition, float deltaTime)
             => _trail?.Sample(simulationPosition, deltaTime);
 
-        /// <summary>Turns the model toward the current movement direction. Cosmetic only.</summary>
+        /// <summary>
+        /// Turns the model toward the current movement direction. The eye cube never yaws -
+        /// direction is told through the pupils instead, square-race style. Cosmetic only.
+        /// </summary>
         public void FaceDirection(Vector3 direction, float deltaTime)
         {
             if (_dead || model == null) return;
             if (direction.sqrMagnitude < 1e-6f) return;
 
-            Quaternion target = Quaternion.LookRotation(new Vector3(direction.x, 0f, direction.z), Vector3.up);
-            model.rotation = Quaternion.RotateTowards(model.rotation, target, turnSpeed * deltaTime);
+            if (_eyes != null)
+            {
+                _eyes.Look(direction);
+            }
+            else
+            {
+                Quaternion target = Quaternion.LookRotation(new Vector3(direction.x, 0f, direction.z), Vector3.up);
+                model.rotation = Quaternion.RotateTowards(model.rotation, target, turnSpeed * deltaTime);
+            }
 
             _anchor?.Follow(direction, deltaTime);
         }
@@ -124,6 +136,13 @@ namespace CubeSim.Racers
         public void SnapToDirection(Vector3 direction)
         {
             if (model == null || direction.sqrMagnitude < 1e-6f) return;
+
+            if (_eyes != null)
+            {
+                _eyes.Look(direction);
+                return;
+            }
+
             model.rotation = Quaternion.LookRotation(new Vector3(direction.x, 0f, direction.z), Vector3.up);
         }
 
@@ -133,17 +152,24 @@ namespace CubeSim.Racers
             animator.SetTrigger(category == WeaponCategory.Melee ? AttackMeleeTrigger : AttackRangedTrigger);
         }
 
-        /// <summary>Tells the animator whether the racer is moving, so Idle can exist at all.</summary>
+        /// <summary>Tells the animator (or the eyes) whether the racer is moving, so Idle exists.</summary>
         public void SetMoving(bool moving)
         {
-            if (_dead || animator == null) return;
-            animator.SetBool(MovingBool, moving);
+            if (_dead) return;
+
+            _eyes?.SetMoving(moving);
+            if (animator != null) animator.SetBool(MovingBool, moving);
         }
 
         public void PlayCelebrate()
         {
-            if (_dead || animator == null) return;
-            animator.SetTrigger(CelebrateTrigger);
+            if (_dead) return;
+
+            // A finisher stops moving for good, so its ribbon leaves with it - a frozen trail
+            // parked on the course for the rest of the round just reads as dirt.
+            _trail?.Stop();
+
+            if (animator != null) animator.SetTrigger(CelebrateTrigger);
         }
 
         public void PlayDeath()

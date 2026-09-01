@@ -5,9 +5,14 @@ using CubeSim.Racers;
 namespace CubeSim.Visuals
 {
     /// <summary>
-    /// Plays the episode's sound. There is deliberately no music bed: the collision-performed
-    /// piano IS the soundtrack - heard blind, an episode is one long fast piano piece - and the
-    /// only one-shots are the four story beats (hitmarker, kill sting, eat pop, win sparkle).
+    /// Plays the episode's sound, in one of two modes chosen on the library asset.
+    ///
+    /// CollisionMelody: no music bed at all - the collision-performed piano IS the soundtrack,
+    /// and the only one-shots are the story beats (hitmarker, kill sting, eat pop, win sparkle).
+    ///
+    /// BackgroundPool: a quiet BGM track from the pool plays under everything, shuffled so no
+    /// track repeats until the whole pool has been heard; collision notes are off, and the same
+    /// story-beat SFX (plus the breakable-object cracks) sit clearly on top.
     ///
     /// Purely cosmetic: reads simulation state, never writes it, driven from Update.
     /// </summary>
@@ -17,7 +22,7 @@ namespace CubeSim.Visuals
         private static readonly HashSet<SimSoundId> AlwaysPlay = new HashSet<SimSoundId>
         {
             SimSoundId.RacerHit, SimSoundId.RacerDeath, SimSoundId.CrushDeath,
-            SimSoundId.GoalReached, SimSoundId.FoodEaten
+            SimSoundId.GoalReached, SimSoundId.FoodEaten, SimSoundId.WallBreak
         };
 
         private const int Voices = 12;
@@ -38,6 +43,12 @@ namespace CubeSim.Visuals
 
         private readonly int[] _bounceCounts = new int[64];
         private readonly float[] _lastPlayTimes = new float[32];
+
+        // BackgroundPool state: one source, a shuffled index bag, and the last-played track so a
+        // reshuffle can never deal the same song twice in a row.
+        private readonly AudioSource _bgm;
+        private readonly List<int> _bgmBag = new List<int>();
+        private int _lastBgmIndex = -1;
 
         /// <summary>
         /// Same-sound retrigger floor. Two racers eating on the same frame, or two kills in one
@@ -71,9 +82,63 @@ namespace CubeSim.Visuals
                 _voices[i].spatialBlend = 0f; // top-down camera: flat 2D mix, like the reference
             }
 
-            // A different tune every play, like the reference channels rotating their tracks.
-            // UnityEngine.Random is fine here: song choice is presentation, not simulation.
-            _melody = new CollisionMelody(_root, MelodySongs.Pick(Random.Range(0, 1024)));
+            if (_library != null && _library.MusicMode == AudioMusicMode.BackgroundPool
+                && _library.BgmPool != null && _library.BgmPool.Count > 0)
+            {
+                // BGM mode: no collision instrument, one quiet track under everything.
+                var bgmGo = new GameObject("BGM");
+                bgmGo.transform.SetParent(_root, false);
+                _bgm = bgmGo.AddComponent<AudioSource>();
+                _bgm.playOnAwake = false;
+                _bgm.loop = false;
+                _bgm.spatialBlend = 0f;
+                _bgm.volume = _library.BgmVolume;
+
+                PlayNextBgm();
+            }
+            else
+            {
+                // A different tune every play, like the reference channels rotating their tracks.
+                // UnityEngine.Random is fine here: song choice is presentation, not simulation.
+                _melody = new CollisionMelody(_root, MelodySongs.Pick(Random.Range(0, 1024)));
+            }
+        }
+
+        /// <summary>
+        /// Deals the next background track from a shuffle bag: every track plays once before any
+        /// repeats, and the first card of a fresh bag is never the track that just ended.
+        /// </summary>
+        private void PlayNextBgm()
+        {
+            IReadOnlyList<AudioClip> pool = _library.BgmPool;
+
+            if (_bgmBag.Count == 0)
+            {
+                for (int i = 0; i < pool.Count; i++)
+                {
+                    if (pool[i] != null) _bgmBag.Add(i);
+                }
+
+                for (int i = _bgmBag.Count - 1; i > 0; i--)
+                {
+                    int j = Random.Range(0, i + 1);
+                    (_bgmBag[i], _bgmBag[j]) = (_bgmBag[j], _bgmBag[i]);
+                }
+
+                if (_bgmBag.Count > 1 && _bgmBag[_bgmBag.Count - 1] == _lastBgmIndex)
+                {
+                    (_bgmBag[0], _bgmBag[_bgmBag.Count - 1]) = (_bgmBag[_bgmBag.Count - 1], _bgmBag[0]);
+                }
+            }
+
+            if (_bgmBag.Count == 0) return;
+
+            int index = _bgmBag[_bgmBag.Count - 1];
+            _bgmBag.RemoveAt(_bgmBag.Count - 1);
+            _lastBgmIndex = index;
+
+            _bgm.clip = pool[index];
+            _bgm.Play();
         }
 
         /// <summary>Hooks the per-racer state this system polls for bounce sounds.</summary>
@@ -124,6 +189,9 @@ namespace CubeSim.Visuals
             _time += deltaTime;
             _ambientBudget = Mathf.Min(2f, _ambientBudget + AmbientRateLimit * deltaTime);
             _melody?.Tick(deltaTime);
+
+            // A finished BGM track deals the next card from the bag.
+            if (_bgm != null && !_bgm.isPlaying) PlayNextBgm();
 
             if (_racers == null) return;
 

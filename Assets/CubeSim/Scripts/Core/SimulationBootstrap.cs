@@ -306,15 +306,21 @@ namespace CubeSim.Core
 
             if (walls != null)
             {
+                // Breakable props are the one collision that speaks: a bright crack per hit and a
+                // shatter when they give way - the glass-style objects the viewer expects to hear.
                 walls.OnWallBroken += (id, racer) =>
                 {
                     if (racer != null) vfx?.Play(VfxId.WallBreak, racer.Position, racer.Direction);
+                    audio?.Play(SimSoundId.WallBreak);
                 };
 
-                // A door hit performs the melody too - the swarm bashing a counter down IS the
-                // accelerando.
+                // In melody mode the door hit also performs the tune - the swarm bashing a counter
+                // down IS the accelerando. In BGM mode Melody is null and only the crack plays.
                 walls.OnWallHit += (id, racer, remaining) =>
+                {
+                    audio?.Play(SimSoundId.WallHit);
                     audio?.Melody?.PlayNextNote(0.45f);
+                };
             }
         }
 

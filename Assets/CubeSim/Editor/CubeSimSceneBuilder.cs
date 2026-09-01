@@ -138,10 +138,10 @@ namespace CubeSim.EditorTools
             config.racers.trail.baseWidth = 1.25f;
             config.racers.trail.length = 7f;
 
-            // Pet Survival: every racer a different creature from the roster, wearing the pack's
-            // own texture - the species is the identity, the colour rides on trail and UI.
-            config.racers.visual = "Pets";
-            config.racers.tintModels = false;
+            // Eye-cube racers: one authored cube model, identity carried by the tint colour and
+            // the leaderboard colour names, direction told by the eyes.
+            config.racers.visual = "EyeCube";
+            config.racers.tintModels = true;
             config.racers.speed = 10f;
 
             // Pet Survival health: three hearts, one per hit, gone on the third. The whole combat
