@@ -1,0 +1,587 @@
+{
+    "seed": 4242,
+    "simulation": {
+        "fixedTimeStep": 0.01666666753590107,
+        "applyFixedTimeStep": true,
+        "skinWidth": 0.019999999552965165,
+        "maxCollisionIterations": 6,
+        "groundY": 0.0
+    },
+    "arena": {
+        "mode": 1,
+        "arenaId": "Serpentine01",
+        "size": {
+            "x": 52.0,
+            "y": 30.0
+        },
+        "wallHeight": 2.4000000953674318,
+        "wallThickness": 1.2000000476837159,
+        "floorThickness": 0.5,
+        "generateBorder": true,
+        "layout": 1,
+        "generation": {
+            "profile": 3,
+            "wallBudget": 24,
+            "wallLengthRange": {
+                "x": 4.0,
+                "y": 16.0
+            },
+            "wallThicknessRange": {
+                "x": 0.800000011920929,
+                "y": 1.2000000476837159
+            },
+            "orientationBias": 0.5,
+            "clusterCount": 0,
+            "clusterRadius": 7.0,
+            "clusterShare": 0.6000000238418579,
+            "openAreaBias": 0.0,
+            "structureWeights": {
+                "longWall": 1.0,
+                "lShape": 1.0,
+                "room": 1.0,
+                "corridorPair": 1.0,
+                "block": 1.0
+            },
+            "minimumCorridorWidth": 0.0,
+            "corridorWidthMultiplier": 2.5999999046325685,
+            "corridorSafetyMargin": 0.4000000059604645,
+            "maxPlacementAttempts": 120,
+            "centralClearing": {
+                "enabled": true,
+                "halfExtents": {
+                    "x": 6.5,
+                    "y": 5.5
+                },
+                "margin": 1.5
+            }
+        },
+        "extraWalls": [],
+        "spawnRegions": [],
+        "zones": []
+    },
+    "racers": {
+        "count": 10,
+        "cubeSize": 1.399999976158142,
+        "speed": 9.0,
+        "maxHealth": 100.0,
+        "visual": "Fox",
+        "visualHeightRatio": 1.7000000476837159,
+        "racerVisualScale": 1.2999999523162842,
+        "weaponPickupScale": 2.4000000953674318,
+        "equippedWeaponScale": 2.0,
+        "weaponAnchor": {
+            "sideOffset": 0.8500000238418579,
+            "heightOffset": 1.4500000476837159,
+            "forwardOffset": 0.15000000596046449,
+            "followSpeed": 540.0,
+            "bobAmplitude": 0.09000000357627869,
+            "bobSpeed": 3.200000047683716,
+            "spinSpeed": 0.0,
+            "holdEuler": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": -25.0
+            }
+        },
+        "trail": {
+            "enabled": true,
+            "length": 5.599999904632568,
+            "width": 0.8500000238418579,
+            "baseWidth": 0.8999999761581421,
+            "minPointDistance": 0.2800000011920929,
+            "heightOffset": 0.05999999865889549,
+            "lifetime": 0.0,
+            "disappearMode": 3,
+            "deathRetractDuration": 0.5,
+            "deathFadeDuration": 0.4000000059604645,
+            "rootCapEnabled": true,
+            "rootCapRadius": 1.2000000476837159,
+            "rootCapHeightOffset": 0.07500000298023224,
+            "rootCapUsesOutline": true
+        },
+        "startDirectionMode": 0,
+        "startAngles": [],
+        "minAxisAngle": 25.0,
+        "placement": 0,
+        "spawnClearance": 0.3499999940395355,
+        "teamAssignment": 0,
+        "teams": [
+            {
+                "name": "Runners",
+                "color": {
+                    "r": 0.949999988079071,
+                    "g": 0.23999999463558198,
+                    "b": 0.2199999988079071,
+                    "a": 1.0
+                }
+            }
+        ],
+        "colorSource": 0,
+        "racerCollision": 1,
+        "racerCollisionEnabled": true,
+        "racerCollisionSkin": 0.019999999552965165,
+        "racerCollisionIterations": 3,
+        "explicitRacers": []
+    },
+    "pressure": {
+        "enabled": true,
+        "mode": 1,
+        "overhang": 1.5,
+        "height": 2.200000047683716,
+        "trackSpeedScale": 0.0,
+        "trackStartDelay": -1.0,
+        "slabs": [
+            {
+                "side": 0,
+                "startInset": 0.0,
+                "targetInset": 20.0,
+                "startDelay": 4.0,
+                "speed": 0.1599999964237213
+            },
+            {
+                "side": 1,
+                "startInset": 0.0,
+                "targetInset": 20.0,
+                "startDelay": 4.0,
+                "speed": 0.1599999964237213
+            }
+        ]
+    },
+    "weapons": {
+        "enabled": true,
+        "count": 1,
+        "allowedIds": [],
+        "allowedCategories": [],
+        "pickupRadius": 0.6000000238418579,
+        "releaseMode": 0,
+        "holdDuration": 6.0,
+        "ammo": 4,
+        "dropRearmDelay": 0.5,
+        "repickupCooldown": 2.0,
+        "catalog": [
+            {
+                "id": "Knife",
+                "category": 0,
+                "damage": 34.0,
+                "attackCooldown": 0.699999988079071,
+                "attackRange": 1.899999976158142,
+                "attackArc": 130.0,
+                "hitscan": false,
+                "projectileSpeed": 26.0,
+                "projectileRadius": 0.18000000715255738,
+                "requireLineOfSight": true,
+                "releaseMode": 0,
+                "useOwnRelease": false,
+                "holdDuration": 8.0,
+                "ammo": 5,
+                "visualPrefabPath": "",
+                "color": {
+                    "r": 0.8500000238418579,
+                    "g": 0.8799999952316284,
+                    "b": 0.9200000166893005,
+                    "a": 1.0
+                },
+                "visualSize": {
+                    "x": 0.09000000357627869,
+                    "y": 0.09000000357627869,
+                    "z": 0.949999988079071
+                },
+                "gripOffset": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "gripEuler": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            {
+                "id": "Axe",
+                "category": 0,
+                "damage": 52.0,
+                "attackCooldown": 1.25,
+                "attackRange": 2.200000047683716,
+                "attackArc": 110.0,
+                "hitscan": false,
+                "projectileSpeed": 26.0,
+                "projectileRadius": 0.18000000715255738,
+                "requireLineOfSight": true,
+                "releaseMode": 1,
+                "useOwnRelease": false,
+                "holdDuration": 7.0,
+                "ammo": 6,
+                "visualPrefabPath": "",
+                "color": {
+                    "r": 0.75,
+                    "g": 0.550000011920929,
+                    "b": 0.3499999940395355,
+                    "a": 1.0
+                },
+                "visualSize": {
+                    "x": 0.09000000357627869,
+                    "y": 0.09000000357627869,
+                    "z": 0.949999988079071
+                },
+                "gripOffset": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "gripEuler": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            {
+                "id": "Mace",
+                "category": 0,
+                "damage": 45.0,
+                "attackCooldown": 1.100000023841858,
+                "attackRange": 2.0999999046325685,
+                "attackArc": 120.0,
+                "hitscan": false,
+                "projectileSpeed": 26.0,
+                "projectileRadius": 0.18000000715255738,
+                "requireLineOfSight": true,
+                "releaseMode": 0,
+                "useOwnRelease": false,
+                "holdDuration": 7.0,
+                "ammo": 5,
+                "visualPrefabPath": "",
+                "color": {
+                    "r": 0.699999988079071,
+                    "g": 0.699999988079071,
+                    "b": 0.7799999713897705,
+                    "a": 1.0
+                },
+                "visualSize": {
+                    "x": 0.09000000357627869,
+                    "y": 0.09000000357627869,
+                    "z": 0.949999988079071
+                },
+                "gripOffset": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "gripEuler": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            {
+                "id": "Spear",
+                "category": 0,
+                "damage": 40.0,
+                "attackCooldown": 0.949999988079071,
+                "attackRange": 3.0999999046325685,
+                "attackArc": 70.0,
+                "hitscan": false,
+                "projectileSpeed": 26.0,
+                "projectileRadius": 0.18000000715255738,
+                "requireLineOfSight": true,
+                "releaseMode": 1,
+                "useOwnRelease": false,
+                "holdDuration": 7.0,
+                "ammo": 8,
+                "visualPrefabPath": "",
+                "color": {
+                    "r": 0.6499999761581421,
+                    "g": 0.7200000286102295,
+                    "b": 0.800000011920929,
+                    "a": 1.0
+                },
+                "visualSize": {
+                    "x": 0.09000000357627869,
+                    "y": 0.09000000357627869,
+                    "z": 0.949999988079071
+                },
+                "gripOffset": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "gripEuler": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            {
+                "id": "Pistol",
+                "category": 1,
+                "damage": 22.0,
+                "attackCooldown": 0.8500000238418579,
+                "attackRange": 12.0,
+                "attackArc": 100.0,
+                "hitscan": false,
+                "projectileSpeed": 30.0,
+                "projectileRadius": 0.1599999964237213,
+                "requireLineOfSight": true,
+                "releaseMode": 1,
+                "useOwnRelease": false,
+                "holdDuration": 7.0,
+                "ammo": 8,
+                "visualPrefabPath": "",
+                "color": {
+                    "r": 0.550000011920929,
+                    "g": 0.75,
+                    "b": 1.0,
+                    "a": 1.0
+                },
+                "visualSize": {
+                    "x": 0.09000000357627869,
+                    "y": 0.09000000357627869,
+                    "z": 0.949999988079071
+                },
+                "gripOffset": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "gripEuler": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            {
+                "id": "Shotgun",
+                "category": 1,
+                "damage": 46.0,
+                "attackCooldown": 1.5,
+                "attackRange": 8.0,
+                "attackArc": 100.0,
+                "hitscan": false,
+                "projectileSpeed": 26.0,
+                "projectileRadius": 0.25999999046325686,
+                "requireLineOfSight": true,
+                "releaseMode": 1,
+                "useOwnRelease": false,
+                "holdDuration": 7.0,
+                "ammo": 5,
+                "visualPrefabPath": "",
+                "color": {
+                    "r": 1.0,
+                    "g": 0.6000000238418579,
+                    "b": 0.30000001192092898,
+                    "a": 1.0
+                },
+                "visualSize": {
+                    "x": 0.09000000357627869,
+                    "y": 0.09000000357627869,
+                    "z": 0.949999988079071
+                },
+                "gripOffset": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "gripEuler": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            },
+            {
+                "id": "Rifle",
+                "category": 1,
+                "damage": 30.0,
+                "attackCooldown": 1.100000023841858,
+                "attackRange": 18.0,
+                "attackArc": 100.0,
+                "hitscan": false,
+                "projectileSpeed": 38.0,
+                "projectileRadius": 0.14000000059604646,
+                "requireLineOfSight": true,
+                "releaseMode": 0,
+                "useOwnRelease": false,
+                "holdDuration": 9.0,
+                "ammo": 5,
+                "visualPrefabPath": "",
+                "color": {
+                    "r": 0.6000000238418579,
+                    "g": 1.0,
+                    "b": 0.699999988079071,
+                    "a": 1.0
+                },
+                "visualSize": {
+                    "x": 0.09000000357627869,
+                    "y": 0.09000000357627869,
+                    "z": 0.949999988079071
+                },
+                "gripOffset": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                },
+                "gripEuler": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                }
+            }
+        ]
+    },
+    "visuals": {
+        "shaderName": "CleanRender/ToonLit",
+        "floorColor": {
+            "r": 0.46000000834465029,
+            "g": 0.46000000834465029,
+            "b": 0.49000000953674319,
+            "a": 1.0
+        },
+        "wallColor": {
+            "r": 0.1550000011920929,
+            "g": 0.1550000011920929,
+            "b": 0.17000000178813935,
+            "a": 1.0
+        },
+        "shadowColor": {
+            "r": 0.10000000149011612,
+            "g": 0.10000000149011612,
+            "b": 0.12999999523162843,
+            "a": 1.0
+        },
+        "pressureColor": {
+            "r": 1.0,
+            "g": 0.550000011920929,
+            "b": 0.05999999865889549,
+            "a": 1.0
+        },
+        "pressureEmission": 0.5,
+        "racerEmission": 0.550000011920929,
+        "palette": [
+            {
+                "r": 0.949999988079071,
+                "g": 0.1599999964237213,
+                "b": 0.1599999964237213,
+                "a": 1.0
+            },
+            {
+                "r": 0.1599999964237213,
+                "g": 0.8500000238418579,
+                "b": 0.23999999463558198,
+                "a": 1.0
+            },
+            {
+                "r": 0.18000000715255738,
+                "g": 0.36000001430511477,
+                "b": 0.9800000190734863,
+                "a": 1.0
+            },
+            {
+                "r": 0.9800000190734863,
+                "g": 0.8600000143051148,
+                "b": 0.14000000059604646,
+                "a": 1.0
+            },
+            {
+                "r": 0.9800000190734863,
+                "g": 0.44999998807907107,
+                "b": 0.10000000149011612,
+                "a": 1.0
+            },
+            {
+                "r": 0.8500000238418579,
+                "g": 0.20000000298023225,
+                "b": 0.8999999761581421,
+                "a": 1.0
+            },
+            {
+                "r": 0.20000000298023225,
+                "g": 0.8999999761581421,
+                "b": 0.9200000166893005,
+                "a": 1.0
+            },
+            {
+                "r": 0.550000011920929,
+                "g": 0.2199999988079071,
+                "b": 0.949999988079071,
+                "a": 1.0
+            },
+            {
+                "r": 0.949999988079071,
+                "g": 0.550000011920929,
+                "b": 0.7200000286102295,
+                "a": 1.0
+            },
+            {
+                "r": 0.7200000286102295,
+                "g": 0.949999988079071,
+                "b": 0.30000001192092898,
+                "a": 1.0
+            }
+        ],
+        "post": {
+            "enabled": true,
+            "bloom": true,
+            "bloomThreshold": 1.0499999523162842,
+            "bloomIntensity": 0.75,
+            "bloomScatter": 0.6499999761581421,
+            "tonemapping": true,
+            "contrast": 8.0,
+            "saturation": 14.0,
+            "postExposure": 0.550000011920929,
+            "colorFilter": {
+                "r": 1.0,
+                "g": 1.0,
+                "b": 1.0,
+                "a": 1.0
+            },
+            "vignette": true,
+            "vignetteIntensity": 0.20000000298023225,
+            "vignetteSmoothness": 0.6499999761581421,
+            "vignetteColor": {
+                "r": 0.019999999552965165,
+                "g": 0.019999999552965165,
+                "b": 0.03999999910593033,
+                "a": 1.0
+            },
+            "antialiasing": true
+        },
+        "ambientColor": {
+            "r": 0.30000001192092898,
+            "g": 0.30000001192092898,
+            "b": 0.3499999940395355,
+            "a": 1.0
+        },
+        "lightColor": {
+            "r": 1.0,
+            "g": 0.9700000286102295,
+            "b": 0.9200000166893005,
+            "a": 1.0
+        },
+        "lightIntensity": 1.350000023841858,
+        "lightEuler": {
+            "x": 62.0,
+            "y": 24.0,
+            "z": 0.0
+        }
+    },
+    "camera": {
+        "orthographic": false,
+        "fieldOfView": 44.0,
+        "tiltDegrees": 4.0,
+        "margin": 1.0199999809265137,
+        "heightOverride": 0.0,
+        "backgroundColor": {
+            "r": 0.09000000357627869,
+            "g": 0.09000000357627869,
+            "b": 0.10000000149011612,
+            "a": 1.0
+        }
+    },
+    "endRules": {
+        "winCondition": 1,
+        "maxDuration": 180.0,
+        "loopOnEnd": false,
+        "resultHoldTime": 3.0,
+        "advanceSeedOnLoop": true,
+        "requiredFinishers": 1
+    }
+}

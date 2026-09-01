@@ -1,0 +1,335 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 229b971b85444bf43b07a8eea8e58bc8, type: 3}
+  m_Name: DefaultSimulationConfig
+  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Core.SimulationConfigAsset
+  config:
+    seed: 20260831
+    simulation:
+      fixedTimeStep: 0.016666668
+      applyFixedTimeStep: 1
+      skinWidth: 0.02
+      maxCollisionIterations: 6
+      groundY: 0
+    arena:
+      mode: 0
+      arenaId: 
+      size: {x: 48, y: 28}
+      wallHeight: 2.4
+      wallThickness: 1.2
+      floorThickness: 0.5
+      generateBorder: 1
+      layout: 1
+      generation:
+        profile: 3
+        wallBudget: 48
+        wallLengthRange: {x: 3, y: 18}
+        wallThicknessRange: {x: 0.7, y: 1.3}
+        orientationBias: 0.5
+        clusterCount: 3
+        clusterRadius: 7
+        clusterShare: 0.6
+        openAreaBias: 0.16
+        structureWeights:
+          longWall: 2.5
+          lShape: 2.5
+          room: 1.75
+          corridorPair: 2
+          block: 1
+        minimumCorridorWidth: 0
+        corridorWidthMultiplier: 2.6
+        corridorSafetyMargin: 0.4
+        maxPlacementAttempts: 120
+        centralClearing:
+          enabled: 1
+          halfExtents: {x: 6.5, y: 5}
+          margin: 1.5
+      extraWalls: []
+      spawnRegions: []
+      zones: []
+    racers:
+      count: 10
+      cubeSize: 1.4
+      speed: 8
+      maxHealth: 100
+      visual: Fox
+      visualHeightRatio: 1.7
+      racerVisualScale: 1.3
+      weaponPickupScale: 2.4
+      equippedWeaponScale: 2
+      weaponAnchor:
+        sideOffset: 0.85
+        heightOffset: 1.45
+        forwardOffset: 0.15
+        followSpeed: 540
+        bobAmplitude: 0.09
+        bobSpeed: 3.2
+        spinSpeed: 0
+        holdEuler: {x: 0, y: 0, z: -25}
+      trail:
+        enabled: 1
+        length: 5.2
+        width: 0.85
+        baseWidth: 0.85
+        minPointDistance: 0.28
+        heightOffset: 0.06
+        lifetime: 0
+        disappearMode: 3
+        deathRetractDuration: 0.5
+        deathFadeDuration: 0.4
+        rootCapEnabled: 1
+        rootCapRadius: 1.2
+        rootCapHeightOffset: 0.075
+        rootCapUsesOutline: 1
+      startDirectionMode: 0
+      startAngles: []
+      minAxisAngle: 22
+      placement: 1
+      spawnClearance: 0.35
+      teamAssignment: 1
+      teams:
+      - name: Team A
+        color: {r: 0.95, g: 0.24, b: 0.22, a: 1}
+      - name: Team B
+        color: {r: 0.24, g: 0.52, b: 0.98, a: 1}
+      colorSource: 0
+      racerCollision: 1
+      racerCollisionEnabled: 1
+      racerCollisionSkin: 0.02
+      racerCollisionIterations: 3
+      explicitRacers: []
+    pressure:
+      enabled: 1
+      mode: 0
+      overhang: 1.5
+      height: 1.8
+      trackSpeedScale: 0
+      trackStartDelay: -1
+      slabs:
+      - side: 0
+        startInset: 1.3
+        targetInset: 22.4
+        startDelay: 12
+        speed: 0.42
+      - side: 1
+        startInset: 1.3
+        targetInset: 22.4
+        startDelay: 12
+        speed: 0.42
+      - side: 2
+        startInset: 1.3
+        targetInset: 12.4
+        startDelay: 70
+        speed: 0.45
+      - side: 3
+        startInset: 1.3
+        targetInset: 12.4
+        startDelay: 70
+        speed: 0.45
+    weapons:
+      enabled: 1
+      count: 3
+      allowedIds: []
+      allowedCategories: 
+      pickupRadius: 0.6
+      releaseMode: 0
+      holdDuration: 12
+      ammo: 6
+      dropRearmDelay: 0.5
+      repickupCooldown: 1.5
+      catalog:
+      - id: Knife
+        category: 0
+        damage: 34
+        attackCooldown: 0.7
+        attackRange: 1.9
+        attackArc: 130
+        hitscan: 0
+        projectileSpeed: 26
+        projectileRadius: 0.18
+        requireLineOfSight: 1
+        releaseMode: 0
+        useOwnRelease: 0
+        holdDuration: 8
+        ammo: 5
+        visualPrefabPath: 
+        color: {r: 0.85, g: 0.88, b: 0.92, a: 1}
+        visualSize: {x: 0.09, y: 0.09, z: 0.95}
+        gripOffset: {x: 0, y: 0, z: 0}
+        gripEuler: {x: 0, y: 0, z: 0}
+      - id: Axe
+        category: 0
+        damage: 52
+        attackCooldown: 1.25
+        attackRange: 2.2
+        attackArc: 110
+        hitscan: 0
+        projectileSpeed: 26
+        projectileRadius: 0.18
+        requireLineOfSight: 1
+        releaseMode: 1
+        useOwnRelease: 0
+        holdDuration: 7
+        ammo: 6
+        visualPrefabPath: 
+        color: {r: 0.75, g: 0.55, b: 0.35, a: 1}
+        visualSize: {x: 0.09, y: 0.09, z: 0.95}
+        gripOffset: {x: 0, y: 0, z: 0}
+        gripEuler: {x: 0, y: 0, z: 0}
+      - id: Mace
+        category: 0
+        damage: 45
+        attackCooldown: 1.1
+        attackRange: 2.1
+        attackArc: 120
+        hitscan: 0
+        projectileSpeed: 26
+        projectileRadius: 0.18
+        requireLineOfSight: 1
+        releaseMode: 0
+        useOwnRelease: 0
+        holdDuration: 7
+        ammo: 5
+        visualPrefabPath: 
+        color: {r: 0.7, g: 0.7, b: 0.78, a: 1}
+        visualSize: {x: 0.09, y: 0.09, z: 0.95}
+        gripOffset: {x: 0, y: 0, z: 0}
+        gripEuler: {x: 0, y: 0, z: 0}
+      - id: Spear
+        category: 0
+        damage: 40
+        attackCooldown: 0.95
+        attackRange: 3.1
+        attackArc: 70
+        hitscan: 0
+        projectileSpeed: 26
+        projectileRadius: 0.18
+        requireLineOfSight: 1
+        releaseMode: 1
+        useOwnRelease: 0
+        holdDuration: 7
+        ammo: 8
+        visualPrefabPath: 
+        color: {r: 0.65, g: 0.72, b: 0.8, a: 1}
+        visualSize: {x: 0.09, y: 0.09, z: 0.95}
+        gripOffset: {x: 0, y: 0, z: 0}
+        gripEuler: {x: 0, y: 0, z: 0}
+      - id: Pistol
+        category: 1
+        damage: 22
+        attackCooldown: 0.85
+        attackRange: 12
+        attackArc: 100
+        hitscan: 0
+        projectileSpeed: 30
+        projectileRadius: 0.16
+        requireLineOfSight: 1
+        releaseMode: 1
+        useOwnRelease: 0
+        holdDuration: 7
+        ammo: 8
+        visualPrefabPath: 
+        color: {r: 0.55, g: 0.75, b: 1, a: 1}
+        visualSize: {x: 0.09, y: 0.09, z: 0.95}
+        gripOffset: {x: 0, y: 0, z: 0}
+        gripEuler: {x: 0, y: 0, z: 0}
+      - id: Shotgun
+        category: 1
+        damage: 46
+        attackCooldown: 1.5
+        attackRange: 8
+        attackArc: 100
+        hitscan: 0
+        projectileSpeed: 26
+        projectileRadius: 0.26
+        requireLineOfSight: 1
+        releaseMode: 1
+        useOwnRelease: 0
+        holdDuration: 7
+        ammo: 5
+        visualPrefabPath: 
+        color: {r: 1, g: 0.6, b: 0.3, a: 1}
+        visualSize: {x: 0.09, y: 0.09, z: 0.95}
+        gripOffset: {x: 0, y: 0, z: 0}
+        gripEuler: {x: 0, y: 0, z: 0}
+      - id: Rifle
+        category: 1
+        damage: 30
+        attackCooldown: 1.1
+        attackRange: 18
+        attackArc: 100
+        hitscan: 0
+        projectileSpeed: 38
+        projectileRadius: 0.14
+        requireLineOfSight: 1
+        releaseMode: 0
+        useOwnRelease: 0
+        holdDuration: 9
+        ammo: 5
+        visualPrefabPath: 
+        color: {r: 0.6, g: 1, b: 0.7, a: 1}
+        visualSize: {x: 0.09, y: 0.09, z: 0.95}
+        gripOffset: {x: 0, y: 0, z: 0}
+        gripEuler: {x: 0, y: 0, z: 0}
+    visuals:
+      shaderName: CleanRender/ToonLit
+      floorColor: {r: 0.46, g: 0.46, b: 0.49, a: 1}
+      wallColor: {r: 0.155, g: 0.155, b: 0.17, a: 1}
+      shadowColor: {r: 0.1, g: 0.1, b: 0.13, a: 1}
+      pressureColor: {r: 1, g: 0.55, b: 0.06, a: 1}
+      pressureEmission: 0.5
+      racerEmission: 0.55
+      palette:
+      - {r: 0.95, g: 0.16, b: 0.16, a: 1}
+      - {r: 0.16, g: 0.85, b: 0.24, a: 1}
+      - {r: 0.18, g: 0.36, b: 0.98, a: 1}
+      - {r: 0.98, g: 0.86, b: 0.14, a: 1}
+      - {r: 0.98, g: 0.45, b: 0.1, a: 1}
+      - {r: 0.85, g: 0.2, b: 0.9, a: 1}
+      - {r: 0.2, g: 0.9, b: 0.92, a: 1}
+      - {r: 0.55, g: 0.22, b: 0.95, a: 1}
+      - {r: 0.95, g: 0.55, b: 0.72, a: 1}
+      - {r: 0.72, g: 0.95, b: 0.3, a: 1}
+      post:
+        enabled: 1
+        bloom: 1
+        bloomThreshold: 1.05
+        bloomIntensity: 0.75
+        bloomScatter: 0.65
+        tonemapping: 1
+        contrast: 8
+        saturation: 14
+        postExposure: 0.55
+        colorFilter: {r: 1, g: 1, b: 1, a: 1}
+        vignette: 1
+        vignetteIntensity: 0.2
+        vignetteSmoothness: 0.65
+        vignetteColor: {r: 0.02, g: 0.02, b: 0.04, a: 1}
+        antialiasing: 1
+      ambientColor: {r: 0.3, g: 0.3, b: 0.35, a: 1}
+      lightColor: {r: 1, g: 0.97, b: 0.92, a: 1}
+      lightIntensity: 1.35
+      lightEuler: {x: 62, y: 24, z: 0}
+    camera:
+      orthographic: 0
+      fieldOfView: 42
+      tiltDegrees: 6
+      margin: 1.1
+      heightOverride: 0
+      backgroundColor: {r: 0.09, g: 0.09, b: 0.1, a: 1}
+    endRules:
+      winCondition: 0
+      maxDuration: 240
+      loopOnEnd: 0
+      resultHoldTime: 3
+      advanceSeedOnLoop: 1
+      requiredFinishers: 1
