@@ -38,6 +38,9 @@ namespace CubeSim.Racers
         /// <summary>Contacts resolved since construction. Read by the validation harness.</summary>
         public int ContactCount { get; private set; }
 
+        /// <summary>Every resolved pair, in (min index, max index) order. Mode rules listen here.</summary>
+        public System.Action<Racer, Racer> OnContact;
+
         /// <summary>Deepest overlap seen before separation, in metres.</summary>
         public float MaxPenetration { get; private set; }
 
@@ -195,6 +198,7 @@ namespace CubeSim.Racers
             Separate(a, b, normal, penetration, solver);
             Bounce(a, b, normal);
             ContactCount++;
+            OnContact?.Invoke(a, b);
             return true;
         }
 
@@ -231,6 +235,7 @@ namespace CubeSim.Racers
             Bounce(a, b, normal);
             ContactCount++;
             SweptContactCount++;
+            OnContact?.Invoke(a, b);
             return true;
         }
 

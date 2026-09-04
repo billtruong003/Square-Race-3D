@@ -137,18 +137,25 @@ namespace CubeSim.EditorTools
             config.racers.racerVisualScale = 1.0f;
             config.racers.trail.baseWidth = 1.25f;
             config.racers.trail.length = 7f;
+            config.racers.trail.rideRacerCentre = true;
 
             // Eye-cube racers: one authored cube model, identity carried by the tint colour and
             // the leaderboard colour names, direction told by the eyes.
             config.racers.visual = "EyeCube";
             config.racers.tintModels = true;
-            config.racers.speed = 10f;
+            config.racers.speed = 11.5f;
 
             // Pet Survival health: three hearts, one per hit, gone on the third. The whole combat
             // catalog deals exactly 1 so the hearts read literally.
             config.racers.maxHealth = 3f;
 
             config.weapons.count = 2;
+
+            // The model library already normalises every weapon to ~2m; these multipliers are 1
+            // on purpose - the old 1.8/1.6 pair dated from metre-scale models and blew the knives
+            // up past 5m on the map.
+            config.racers.weaponPickupScale = 1.0f;
+            config.racers.equippedWeaponScale = 1.0f;
 
             config.pressure.mode = PressureMode.LinearSlabs;
             config.pressure.overhang = 1.5f;
@@ -180,7 +187,9 @@ namespace CubeSim.EditorTools
             // The arena bounds are now the course exactly, so the margin has to supply the breathing
             // room the old ring of dead floor used to. It also puts a band of the surrounding rock on
             // screen, which is what the padded fill masses are for.
-            config.camera.margin = 1.18f;
+            config.camera.margin = 1.06f;
+            // Leaderboard strip (332px of 1920) stays clear: the arena is framed to the right of it.
+            config.camera.leftReserve = 0.18f;
 
             config.endRules.winCondition = WinCondition.LastAlive;
 
@@ -205,6 +214,7 @@ namespace CubeSim.EditorTools
             WeaponVisualLibrary weaponModels = WeaponAssetBuilder.BuildLibrary();
             VfxLibrary effects = VfxAssetBuilder.BuildLibrary();
             AudioLibrary sounds = AudioAssetBuilder.BuildLibrary();
+            FoodVisualLibrary foods = FoodAssetBuilder.BuildLibrary();
             VolumeProfile outlineProfile = OutlineVolumeSetup.CreateProfile(config.Config.visuals.post);
 
             Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -229,6 +239,7 @@ namespace CubeSim.EditorTools
             bootstrap.SetWeaponLibrary(weaponModels);
             bootstrap.SetVfxLibrary(effects);
             bootstrap.SetAudioLibrary(sounds);
+            bootstrap.SetFoodLibrary(foods);
             bootstrapGo.AddComponent<SimulationValidator>();
             EditorUtility.SetDirty(bootstrap);
 
@@ -376,6 +387,8 @@ namespace CubeSim.EditorTools
             config.camera.fieldOfView = 42f;
             config.camera.tiltDegrees = 6f;
             config.camera.margin = 1.1f;
+            // Leaderboard strip (332px of 1920) stays clear: the arena is framed to the right of it.
+            config.camera.leftReserve = 0.18f;
 
             config.endRules.winCondition = WinCondition.LastAlive;
             config.endRules.maxDuration = 240f;

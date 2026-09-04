@@ -22,7 +22,19 @@ namespace CubeSim.Visuals
         WallBreak = 12,
         WallHit = 13,
         RacerHit = 14,
-        FoodEaten = 15
+        FoodEaten = 15,
+        SawCut = 16,
+        CrusherSlam = 17,
+        SpikeHit = 18,
+        Bumper = 19,
+        Coin = 20,
+        GateOpen = 21,
+        KeyPickup = 22,
+        Potion = 23,
+        Teleport = 24,
+        SpikeWarn = 25,
+        RockHit = 26,
+        RockBreak = 27
     }
 
     /// <summary>What carries the music of an episode.</summary>

@@ -16,9 +16,15 @@ namespace CubeSim.Combat
         private readonly Transform _root;
         private readonly Transform _spin;
         private readonly float _groundY;
+        private readonly float _baseScale;
 
         private float _rearmTimer;
         private float _ownerLockTimer;
+        private float _pulseTime;
+
+        /// <summary>How hard the pickup breathes: +/-12% of size at ~1.2 beats a second.</summary>
+        private const float PulseAmplitude = 0.12f;
+        private const float PulseHertz = 1.2f;
 
         public WeaponDefinition Definition { get; }
         public Vector3 Position { get; private set; }
@@ -40,26 +46,20 @@ namespace CubeSim.Combat
 
             _spin = new GameObject("Spin").transform;
             _spin.SetParent(_root, false);
-            _spin.localScale = Vector3.one * Mathf.Max(0.1f, visualScale);
+            _baseScale = Mathf.Max(0.1f, visualScale);
+            _spin.localScale = Vector3.one * _baseScale;
             WeaponVisualFactory.Create(definition, materials, _spin, visuals, WeaponVisualFactory.Context.Pickup);
 
-            // A flat glowing pad reads far better from a top-down camera than the weapon alone.
-            GameObject pad = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            pad.name = "Pad";
-            DestroyComponent(pad.GetComponent<Collider>());
-            pad.transform.SetParent(_root, false);
-            float padSize = 0.95f * Mathf.Max(0.1f, visualScale);
-            pad.transform.localPosition = new Vector3(0f, -0.55f, 0f);
-            pad.transform.localScale = new Vector3(padSize, 0.03f, padSize);
-            pad.GetComponent<MeshRenderer>().sharedMaterial = materials.GetWeaponMaterial(definition);
-
+            // No pad underneath: a big knife with the size pulse is all the attention it needs.
             SetPosition(position);
         }
 
         public void SetPosition(Vector3 position)
         {
             Position = new Vector3(position.x, _groundY, position.z);
-            _root.localPosition = Position + new Vector3(0f, 0.75f, 0f);
+            // Hovers above the racers (2 m) and the walls (2.8 m): a loose knife is never hidden
+            // under a cube that is standing on it.
+            _root.localPosition = Position + new Vector3(0f, 3.1f, 0f);
         }
 
         /// <summary>
@@ -90,7 +90,11 @@ namespace CubeSim.Combat
             if (_ownerLockTimer > 0f) _ownerLockTimer = Mathf.Max(0f, _ownerLockTimer - deltaTime);
             if (!Available) return;
 
+            // Spin plus a size pulse - the "come get me" heartbeat that sells a pickup top-down.
+            _pulseTime += deltaTime;
             _spin.localRotation *= Quaternion.Euler(0f, 140f * deltaTime, 0f);
+            float pulse = 1f + PulseAmplitude * Mathf.Sin(_pulseTime * PulseHertz * 2f * Mathf.PI);
+            _spin.localScale = Vector3.one * (_baseScale * pulse);
         }
 
         /// <summary>Anyone may collect it once the rearm delay has passed.</summary>
@@ -102,13 +106,6 @@ namespace CubeSim.Combat
             if (!CanBeCollected) return false;
             if (racer == LastOwner && _ownerLockTimer > 0f) return false;
             return true;
-        }
-
-        private static void DestroyComponent(Object component)
-        {
-            if (component == null) return;
-            if (Application.isPlaying) Object.Destroy(component);
-            else Object.DestroyImmediate(component);
         }
     }
 }

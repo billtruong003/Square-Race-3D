@@ -27,7 +27,7 @@ namespace CubeSim.Visuals
         public Color shadowColor = new Color(0.19f, 0.19f, 0.22f, 1f);
 
         public Color pressureColor = new Color(1f, 0.55f, 0.06f, 1f);
-        [Range(0f, 8f)] public float pressureEmission = 0.5f;
+        [Range(0f, 8f)] public float pressureEmission = 1.0f;
 
         [Range(0f, 6f)] public float racerEmission = 0.55f;
 

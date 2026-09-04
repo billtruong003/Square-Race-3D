@@ -69,7 +69,14 @@ namespace CubeSim.Racers
                 ? settings.baseWidth
                 : Mathf.Max(0.02f, settings.width * racerSize);
             _minPointDistance = Mathf.Max(0.02f, settings.minPointDistance);
-            _heightOffset = settings.heightOffset;
+
+            // The ribbon leaves the cube's middle, not its feet: at floor level it read as a
+            // shadow lying under the racer, while at body height it reads as the streak the
+            // cube is dragging - and the cube itself hides the seam where it starts.
+            _heightOffset = settings.rideRacerCentre
+                ? racerSize * 0.5f
+                : settings.heightOffset;
+
             _lifetime = Mathf.Max(0f, settings.lifetime);
 
             // Length is a distance; capacity is how many samples that needs at the sample spacing.
@@ -96,7 +103,9 @@ namespace CubeSim.Racers
 
             _block = new MaterialPropertyBlock();
 
-            if (settings.rootCapEnabled) BuildRootCap(settings, material);
+            // The cap only ever existed to hide the seam against the floor; riding the racer's
+            // centre puts the seam inside the cube, which hides it better than any disc.
+            if (settings.rootCapEnabled && !settings.rideRacerCentre) BuildRootCap(settings, material);
 
             SetColor(color);
 
@@ -434,8 +443,13 @@ namespace CubeSim.Racers
         [Tooltip("Minimum distance between recorded points. Smaller = smoother, more vertices.")]
         public float minPointDistance = 0.25f;
 
-        [Tooltip("Height above the floor. Keeps the ribbon off the floor plane so it cannot z-fight.")]
+        [Tooltip("Height above the floor. Keeps the ribbon off the floor plane so it cannot z-fight. " +
+                 "Ignored while rideRacerCentre is on.")]
         public float heightOffset = 0.06f;
+
+        [Tooltip("Draw the ribbon at the racer's mid height instead of along the floor, so it " +
+                 "streams out of the cube's body. Turns the root cap off - the cube hides the seam.")]
+        public bool rideRacerCentre = true;
 
         [Tooltip("Seconds for a point to fade out. 0 = length alone controls the trail.")]
         public float lifetime = 0f;

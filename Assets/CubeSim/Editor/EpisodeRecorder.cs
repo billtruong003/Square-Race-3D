@@ -85,10 +85,13 @@ namespace CubeSim.EditorTools
                 Codec = CoreEncoderSettings.OutputCodec.MP4,
                 EncodingQuality = CoreEncoderSettings.VideoEncodingQuality.High
             };
+            // Shorts scenes declare a portrait round; everything else is the 16:9 long form.
+            var director = UnityEngine.Object.FindFirstObjectByType<CubeSim.Core.EpisodeDirector>();
+            bool portrait = director != null && director.Rounds.Count > 0 && director.Rounds[0].portrait;
             movie.ImageInputSettings = new GameViewInputSettings
             {
-                OutputWidth = 1920,
-                OutputHeight = 1080
+                OutputWidth = portrait ? 1080 : 1920,
+                OutputHeight = portrait ? 1920 : 1080
             };
             // The Recorder's own audio path delivers silence on this setup (its AudioRenderer
             // capture never sees the mix), so it stays off; the AudioCaptureTap on the listener
@@ -124,7 +127,9 @@ namespace CubeSim.EditorTools
 
                 // The video file is finalised on the editor frame after play exits; mux then.
                 string video = _videoPath;
-                EditorApplication.delayCall += () => Mux(video, wavPath);
+                // Not delayCall: the editor only flushes delayCall on GUI events, so an unfocused
+                // editor never muxed and the batch stalled. update keeps ticking in the background.
+                RunAfterTicks(2, () => Mux(video, wavPath));
             }
 
             Debug.Log("[CubeSim] Recording stopped.");
@@ -135,6 +140,57 @@ namespace CubeSim.EditorTools
         /// ffmpeg. On success the silent video is replaced in place and the WAV removed; on any
         /// failure both files stay side by side so nothing is ever lost.
         /// </summary>
+        // ------------------------------------------------------------------ recorded ledger
+        // Recordings/recorded_shorts.txt: one line per finished scene ("S_RC13 2026-09-03 file.mp4").
+        // The batch skips anything listed, so a map is never shot twice even after its video left
+        // the folder. Only S_ (shorts) scenes are tracked; long formats reshoot freely.
+
+        private static string LedgerPath =>
+            Path.Combine(Path.GetDirectoryName(Application.dataPath), "Recordings", "recorded_shorts.txt");
+
+        public static bool LedgerContains(string sceneName)
+        {
+            if (!File.Exists(LedgerPath)) return false;
+            foreach (string line in File.ReadAllLines(LedgerPath))
+            {
+                string trimmed = line.Trim();
+                if (trimmed.Length == 0 || trimmed[0] == '#') continue;
+                int space = trimmed.IndexOf(' ');
+                string first = space < 0 ? trimmed : trimmed.Substring(0, space);
+                if (first == sceneName) return true;
+            }
+            return false;
+        }
+
+        private static void LedgerAdd(string videoPath)
+        {
+            string file = Path.GetFileNameWithoutExtension(videoPath);
+            if (!file.StartsWith("S_")) return;
+            int cut = file.IndexOf("_20");
+            string scene = cut > 0 ? file.Substring(0, cut) : file;
+            if (LedgerContains(scene)) return;
+            File.AppendAllText(LedgerPath, $"{scene} {System.DateTime.Now:yyyy-MM-dd} {file}.mp4" + System.Environment.NewLine);
+            Debug.Log($"[CubeSim] Ledger: {scene} marked as recorded.");
+        }
+
+        /// <summary>
+        /// Runs <paramref name="action"/> after the editor has ticked <paramref name="ticks"/> more
+        /// update frames. Unlike delayCall this fires while the editor window is unfocused, which is
+        /// exactly when a long unattended batch is running.
+        /// </summary>
+        public static void RunAfterTicks(int ticks, System.Action action)
+        {
+            int n = 0;
+            EditorApplication.CallbackFunction cb = null;
+            cb = () =>
+            {
+                if (++n < ticks) return;
+                EditorApplication.update -= cb;
+                action();
+            };
+            EditorApplication.update += cb;
+        }
+
         private static void Mux(string videoPath, string wavPath)
         {
             if (!File.Exists(videoPath) || !File.Exists(wavPath))
@@ -167,6 +223,7 @@ namespace CubeSim.EditorTools
                     File.Move(merged, videoPath);
                     File.Delete(wavPath);
                     Debug.Log($"[CubeSim] Audio muxed into {videoPath}");
+                    LedgerAdd(videoPath);
                 }
                 else
                 {

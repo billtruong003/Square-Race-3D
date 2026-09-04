@@ -62,9 +62,10 @@ namespace CubeSim.Arena.Authored
         [Range(0f, 1f)] [SerializeField] private float colorTolerance = 0.25f;
 
         [Header("Contact debounce")]
-        [Tooltip("Seconds before the same racer can register another impact on this wall. Stops a " +
-                 "racer sliding along the face from counting every step.")]
-        [SerializeField] private float contactCooldownPerRacer = 0.35f;
+        [Tooltip("Seconds before the same racer can register another impact on this wall. Kept tiny " +
+                 "by request: a racer grinding against a rock keeps chipping it (about ten hits a " +
+                 "second), it only stops one physics step from counting twice.")]
+        [SerializeField] private float contactCooldownPerRacer = 0.1f;
 
         [Header("Removal")]
         [SerializeField] private WallRemovalMode removalMode = WallRemovalMode.ShrinkOut;
@@ -84,9 +85,20 @@ namespace CubeSim.Arena.Authored
 
         [SerializeField] private float hitFlashDuration = 0.12f;
 
+        [Tooltip("The wall carries its own baked look (rock model, glass material) - the runtime " +
+                 "system must not swap or tint its material.")]
+        [SerializeField] private bool customVisual = false;
+
+        [Tooltip("Stone: rock and boulder walls. Picks the chip/crumble sounds and the hit shake instead of the glass crack.")]
+        [SerializeField] private bool rock = false;
+
         public string Id => string.IsNullOrEmpty(id) ? name : id;
         public Color AccentOverride => accentOverride;
         public void SetAccentOverride(Color value) => accentOverride = value;
+        public bool CustomVisual => customVisual;
+        public void SetCustomVisual(bool value) => customVisual = value;
+        public bool IsRock => rock;
+        public void SetRock(bool value) => rock = value;
         public BreakCondition Condition => condition;
         public int RequiredHits => Mathf.Max(1, requiredHits);
         public Color RequiredColor => requiredColor;

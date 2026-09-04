@@ -72,6 +72,11 @@ namespace CubeSim.Arena.Authored
         }
 
         /// <summary>Makes sure the object can actually block a racer once the arena is built.</summary>
+        [Tooltip("The builder baked a material onto this wall (door slab, locked gate); never replace it at play time.")]
+        [SerializeField] private bool keepBakedMaterial = false;
+
+        public void SetKeepBakedMaterial(bool value) => keepBakedMaterial = value;
+
         public void PrepareForPlay(Material material)
         {
             gameObject.layer = SimulationLayers.Wall;
@@ -88,7 +93,12 @@ namespace CubeSim.Arena.Authored
 
             var renderer = GetComponent<MeshRenderer>();
             if (renderer == null) renderer = gameObject.AddComponent<MeshRenderer>();
-            if (material != null) renderer.sharedMaterial = material;
+
+            // A wall with a baked look (glass gate, rock model) keeps the material its builder
+            // gave it; the shared wall material is only for plain geometry.
+            var breakable = GetComponent<BreakableWall>();
+            bool customVisual = keepBakedMaterial || (breakable != null && breakable.CustomVisual);
+            if (material != null && !customVisual) renderer.sharedMaterial = material;
 
             var box = GetComponent<BoxCollider>();
             if (box == null) box = gameObject.AddComponent<BoxCollider>();

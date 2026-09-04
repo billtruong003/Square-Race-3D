@@ -83,6 +83,7 @@ namespace CubeSim.Racers
                     HalfExtent = half,
                     Team = definition.team,
                     Color = color,
+                    PaletteIndex = definition.paletteIndex >= 0 ? definition.paletteIndex : i,
                     MaxHealth = Mathf.Max(1f, setup.maxHealth),
                     Health = Mathf.Max(1f, setup.maxHealth)
                 };
@@ -214,7 +215,8 @@ namespace CubeSim.Racers
                 return new List<RacerDefinition>(setup.explicitRacers);
             }
 
-            int count = Mathf.Max(0, setup.count);
+            bool bySlot = setup.paletteIndices != null && setup.paletteIndices.Count > 0;
+            int count = bySlot ? setup.paletteIndices.Count : Mathf.Max(0, setup.count);
             var definitions = new List<RacerDefinition>(count);
             float half = setup.cubeSize * 0.5f;
 
@@ -227,7 +229,8 @@ namespace CubeSim.Racers
                     spawnPosition = setup.placement == SpawnPlacement.SpawnSlots
                         ? ResolveSlotSpawn(arena, i, count, half)
                         : ResolveSpawn(setup, arena, random, i, half),
-                    startAngle = ResolveAngle(setup, random, i, count)
+                    startAngle = ResolveAngle(setup, random, i, count),
+                    paletteIndex = bySlot ? setup.paletteIndices[i] : -1
                 });
             }
 
@@ -347,7 +350,11 @@ namespace CubeSim.Racers
                 return setup.teams[Mathf.Clamp(definition.team, 0, setup.teams.Count - 1)].color;
             }
 
-            if (theme.palette.Count > 0) return theme.palette[index % theme.palette.Count];
+            if (theme.palette.Count > 0)
+            {
+                int slot = definition.paletteIndex >= 0 ? definition.paletteIndex : index;
+                return theme.palette[slot % theme.palette.Count];
+            }
             if (setup.teams.Count > 0) return setup.teams[Mathf.Clamp(definition.team, 0, setup.teams.Count - 1)].color;
             return Color.white;
         }

@@ -18,7 +18,8 @@ namespace CubeSim.Visuals
         RacerDeath = 8,
         CrushDeath = 9,
         GoalReached = 10,
-        WallBreak = 11
+        WallBreak = 11,
+        BloodPool = 12
     }
 
     public enum VfxTintMode

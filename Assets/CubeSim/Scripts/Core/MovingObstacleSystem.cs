@@ -30,6 +30,7 @@ namespace CubeSim.Core
         {
             public RotorObstacle Obstacle;
             public Transform Transform;
+            public Transform[] Bars;
         }
 
         private readonly List<Door> _doors = new List<Door>();
@@ -60,8 +61,38 @@ namespace CubeSim.Core
 
             foreach (RotorObstacle rotor in arena.Authored.GetComponentsInChildren<RotorObstacle>(true))
             {
-                _rotors.Add(new Rotor { Obstacle = rotor, Transform = rotor.transform });
+                Collider[] bars = rotor.GetComponentsInChildren<Collider>(true);
+                var barTransforms = new Transform[bars.Length];
+                for (int b = 0; b < bars.Length; b++) barTransforms[b] = bars[b].transform;
+
+                _rotors.Add(new Rotor { Obstacle = rotor, Transform = rotor.transform, Bars = barTransforms });
             }
+        }
+
+        /// <summary>
+        /// The first cutting rotor whose bar overlaps a racer disc, or null. Pure geometry against
+        /// the posed bar transforms (unit cubes under a non-uniform scale), so it is exactly as
+        /// deterministic as the pose itself and never touches the physics scene.
+        /// </summary>
+        public RotorObstacle FindCuttingRotor(Vector3 position, float radius)
+        {
+            for (int i = 0; i < _rotors.Count; i++)
+            {
+                Rotor rotor = _rotors[i];
+                if (rotor.Obstacle.DamagePerHit <= 0f) continue;
+
+                for (int b = 0; b < rotor.Bars.Length; b++)
+                {
+                    Transform bar = rotor.Bars[b];
+                    Vector3 local = bar.InverseTransformPoint(position);
+                    Vector3 scale = bar.lossyScale;
+                    float rx = radius / Mathf.Max(0.001f, Mathf.Abs(scale.x));
+                    float rz = radius / Mathf.Max(0.001f, Mathf.Abs(scale.z));
+                    if (Mathf.Abs(local.x) <= 0.5f + rx && Mathf.Abs(local.z) <= 0.5f + rz) return rotor.Obstacle;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>Poses every obstacle for this step's time. Deterministic by construction.</summary>

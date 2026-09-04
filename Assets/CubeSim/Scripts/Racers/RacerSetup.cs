@@ -91,10 +91,10 @@ namespace CubeSim.Racers
         public bool tintModels = true;
 
         [Tooltip("Scale of a weapon lying on the ground, so pickups stay legible from above.")]
-        public float weaponPickupScale = 1.8f;
+        public float weaponPickupScale = 1f;
 
         [Tooltip("Scale of a weapon a racer is carrying.")]
-        public float equippedWeaponScale = 1.6f;
+        public float equippedWeaponScale = 1f;
 
         [Tooltip("Where a carried weapon floats relative to the racer.")]
         public WeaponAnchorSettings weaponAnchor = new WeaponAnchorSettings();
@@ -137,6 +137,9 @@ namespace CubeSim.Racers
 
         [Tooltip("Fully explicit roster. When non-empty this replaces procedural generation entirely.")]
         public List<RacerDefinition> explicitRacers = new List<RacerDefinition>();
+
+        [Tooltip("When set, overrides count: racer i wears palette slot paletteIndices[i]. Lets a knockout format drop cubes without recolouring the survivors.")]
+        public List<int> paletteIndices = new List<int>();
     }
 
     [Serializable]
@@ -171,5 +174,8 @@ namespace CubeSim.Racers
 
         [Tooltip("Alpha 0 falls back to the team colour.")]
         public Color colorOverride = new Color(0f, 0f, 0f, 0f);
+
+        [Tooltip("Palette slot; -1 = by index.")]
+        public int paletteIndex = -1;
     }
 }

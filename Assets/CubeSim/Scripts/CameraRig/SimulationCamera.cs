@@ -26,8 +26,12 @@ namespace CubeSim.CameraRig
             camera.clearFlags = CameraClearFlags.SolidColor;
 
             float aspect = camera.aspect > 0.01f ? camera.aspect : 16f / 9f;
-            float halfWidth = arenaRect.width * 0.5f * definition.margin;
-            float halfDepth = arenaRect.height * 0.5f * definition.margin;
+            // The HUD owns a strip on the left; the arena has to fit in what is left of the
+            // width, then gets slid right so that strip is empty floor, not hidden racers.
+            float reserve = Mathf.Clamp(definition.leftReserve, 0f, 0.4f);
+            float topReserve = Mathf.Clamp(definition.topReserve, 0f, 0.4f);
+            float halfWidth = arenaRect.width * 0.5f * definition.margin / (1f - reserve);
+            float halfDepth = arenaRect.height * 0.5f * definition.margin / (1f - topReserve);
 
             float height;
             if (definition.orthographic)
@@ -48,6 +52,25 @@ namespace CubeSim.CameraRig
 
             float tilt = Mathf.Clamp(definition.tiltDegrees, 0f, 45f);
             var center = new Vector3(arenaRect.center.x, groundY, arenaRect.center.y);
+
+            if (reserve > 0f)
+            {
+                // Width of the ground plane the camera actually sees; shifting the eye left by
+                // half the reserved strip puts the arena's centre in the middle of the free part.
+                float viewWidth = definition.orthographic
+                    ? camera.orthographicSize * 2f * aspect
+                    : height * Mathf.Tan(definition.fieldOfView * 0.5f * Mathf.Deg2Rad) * 2f * aspect;
+                center.x -= viewWidth * reserve * 0.5f;
+            }
+
+            if (topReserve > 0f)
+            {
+                // Same trick vertically: lift the eye so the court settles under the top strip.
+                float viewDepth = definition.orthographic
+                    ? camera.orthographicSize * 2f
+                    : height * Mathf.Tan(definition.fieldOfView * 0.5f * Mathf.Deg2Rad) * 2f;
+                center.z += viewDepth * topReserve * 0.5f;
+            }
 
             // Pull back along -Z as the camera tilts so the arena stays centred in frame.
             float pitch = 90f - tilt;

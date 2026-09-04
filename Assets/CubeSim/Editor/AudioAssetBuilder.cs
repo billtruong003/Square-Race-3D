@@ -47,6 +47,23 @@ namespace CubeSim.EditorTools
             // hit, and the user-supplied real glass shatter when the thing gives way.
             new Pick { Id = SimSoundId.WallHit,   Clip = EtfxSound + "etfx_target_hit.wav", Volume = 0.35f, PitchMin = 1.25f, PitchMax = 1.45f },
             new Pick { Id = SimSoundId.WallBreak, Clip = Sfx + "GlassBreak.mp3",            Volume = 0.55f, PitchMin = 1.0f,  PitchMax = 1.0f },
+
+            // Device roster (Kenney CC0 packs, see Audio/SFX/Devices/LICENSE.txt).
+            new Pick { Id = SimSoundId.SawCut,      Clip = Sfx + "Devices/SawCut.ogg",      Volume = 0.55f, PitchMin = 0.95f, PitchMax = 1.1f },
+            new Pick { Id = SimSoundId.CrusherSlam, Clip = Sfx + "Devices/CrusherSlam.ogg", Volume = 0.5f,  PitchMin = 0.9f,  PitchMax = 1.0f },
+            new Pick { Id = SimSoundId.SpikeHit,    Clip = Sfx + "Devices/SpikeHit.ogg",    Volume = 0.5f,  PitchMin = 1.0f,  PitchMax = 1.2f },
+            new Pick { Id = SimSoundId.Bumper,      Clip = Sfx + "Devices/Bumper.ogg",      Volume = 0.5f,  PitchMin = 1.3f,  PitchMax = 1.6f },
+            new Pick { Id = SimSoundId.Coin,        Clip = Sfx + "Devices/Coin.ogg",        Volume = 0.45f, PitchMin = 1.4f,  PitchMax = 1.8f },
+            new Pick { Id = SimSoundId.GateOpen,    Clip = Sfx + "Devices/GateOpen.ogg",    Volume = 0.6f,  PitchMin = 0.8f,  PitchMax = 0.9f },
+            new Pick { Id = SimSoundId.KeyPickup,   Clip = Sfx + "Devices/KeyPickup.ogg",   Volume = 0.55f, PitchMin = 1.0f,  PitchMax = 1.0f },
+            new Pick { Id = SimSoundId.Potion,      Clip = Sfx + "Devices/Potion.ogg",      Volume = 0.5f,  PitchMin = 1.0f,  PitchMax = 1.1f },
+            new Pick { Id = SimSoundId.Teleport,    Clip = Sfx + "Devices/Teleport.ogg",    Volume = 0.5f,  PitchMin = 1.0f,  PitchMax = 1.0f },
+            new Pick { Id = SimSoundId.SpikeWarn,   Clip = Sfx + "Devices/SpikeWarn.ogg",   Volume = 0.35f, PitchMin = 1.0f,  PitchMax = 1.0f },
+
+            // Rock and boulder walls: a pickaxe-on-stone chip per hit (never the glass crack), and a
+            // low crumble when the boulder finally gives.
+            new Pick { Id = SimSoundId.RockHit,     Clip = Sfx + "Devices/RockHit.ogg",     Volume = 0.5f,  PitchMin = 0.85f, PitchMax = 1.15f },
+            new Pick { Id = SimSoundId.RockBreak,   Clip = Sfx + "Devices/RockBreak.ogg",   Volume = 0.7f,  PitchMin = 0.9f,  PitchMax = 1.0f },
         };
 
         /// <summary>Stand-in for the eat pop until the real Among-Us eat sample is provided.</summary>

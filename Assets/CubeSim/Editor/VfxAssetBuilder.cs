@@ -40,14 +40,17 @@ namespace CubeSim.EditorTools
 
             // Melee flow: a slash on every swing, a hit burst only when damage lands.
             new Pick { Id = VfxId.MeleeSlash,        PrefabName = "SwordSlashThinWhite",    Scale = 6.0f, Lifetime = 0.7f,  Tint = VfxTintMode.Full,   Height = 0.9f },
-            new Pick { Id = VfxId.MeleeHit,          PrefabName = "SwordHitMiniYellow",     Scale = 5.5f, Lifetime = 0.8f,  Tint = VfxTintMode.Accent, Height = 0.9f },
+            // Blood, not sparks: a directional splat on every hit that lands.
+            new Pick { Id = VfxId.MeleeHit,          PrefabName = "BloodSplatDirectional",  Scale = 4.5f, Lifetime = 1.2f,  Tint = VfxTintMode.None,   Height = 0.9f },
 
             // Weapon circulation.
             new Pick { Id = VfxId.WeaponPickup,      PrefabName = "SparkleExplosionYellow", Scale = 3.0f, Lifetime = 1.2f,  Tint = VfxTintMode.Accent, Height = 0.8f },
             new Pick { Id = VfxId.WeaponDrop,        PrefabName = "SparkleExplosionBlue",   Scale = 2.4f, Lifetime = 1.0f,  Tint = VfxTintMode.Accent, Height = 0.6f },
 
             // Eliminations and outcomes.
-            new Pick { Id = VfxId.RacerDeath,        PrefabName = "SparkExplosion",         Scale = 4.0f, Lifetime = 1.4f,  Tint = VfxTintMode.Accent, Height = 0.8f },
+            new Pick { Id = VfxId.RacerDeath,        PrefabName = "BloodExplosion",         Scale = 4.0f, Lifetime = 1.8f,  Tint = VfxTintMode.None,   Height = 0.8f },
+            // The pool stays on the floor for most of a round - the arena remembers its dead.
+            new Pick { Id = VfxId.BloodPool,         PrefabName = "BloodPoolGrowing",       Scale = 3.5f, Lifetime = 40f,  Tint = VfxTintMode.None,   Height = 0.06f },
             new Pick { Id = VfxId.CrushDeath,        PrefabName = "HitDustExplosion",       Scale = 4.5f, Lifetime = 1.3f,  Tint = VfxTintMode.None,   Height = 0.7f },
             new Pick { Id = VfxId.GoalReached,       PrefabName = "ConfettiBlastRainbow",   Scale = 3.5f, Lifetime = 3.0f,  Tint = VfxTintMode.None,   Height = 1.2f },
             new Pick { Id = VfxId.WallBreak,         PrefabName = "HitDustExplosion",       Scale = 5.5f, Lifetime = 1.4f,  Tint = VfxTintMode.None,   Height = 1.0f },

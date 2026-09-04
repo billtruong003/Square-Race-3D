@@ -109,6 +109,9 @@ namespace CubeSim.Combat
         [Tooltip("How close a racer must get to collect a weapon, on top of its half extent.")]
         public float pickupRadius = 0.55f;
 
+        [Tooltip("Off: attacks never target or damage a racer on the same team (team formats).")]
+        public bool friendlyFire = true;
+
         [Header("Temporary ownership")]
         [Tooltip("Default release rule. A weapon can override it with useOwnRelease.")]
         public WeaponReleaseMode releaseMode = WeaponReleaseMode.TimeBased;

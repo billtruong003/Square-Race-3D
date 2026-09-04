@@ -80,9 +80,19 @@ namespace CubeSim.Combat
         // ---------------------------------------------------------------- spawning
 
         /// <summary>
+        /// Two pickups spawning on top of each other read as one glitched weapon from above.
+        /// Keep at least this much floor between them.
+        /// </summary>
+        private const float MinPickupSeparation = 3f;
+
+        /// <summary>
         /// Places the episode's weapons. Authored maps choose from their declared weapon areas;
         /// procedural maps use the reserved central clearing. Either way the exact point comes from
         /// the run seed, so the same seed reproduces the same spawn.
+        ///
+        /// Both the weapon types and the areas are dealt round-robin from a seeded shuffle rather
+        /// than rolled independently: with two knives and two areas that means one of each knife,
+        /// one per side - never two identical weapons stacked in the same clearing.
         /// </summary>
         private void SpawnWeapons(SimulationRandom random)
         {
@@ -93,14 +103,48 @@ namespace CubeSim.Combat
                 return;
             }
 
+            Shuffle(catalog, random);
+            List<Rect> areas = ResolveShuffledAreas(random);
+
             int count = Mathf.Max(0, _config.count);
+            var placed = new List<Vector3>(count);
+
             for (int i = 0; i < count; i++)
             {
-                WeaponDefinition definition = catalog[random.Range(0, catalog.Count)];
-                Vector3 position = PickSpawnPosition(random);
+                WeaponDefinition definition = catalog[i % catalog.Count];
+                Vector3 position = PickSpawnPosition(random, areas[i % areas.Count], placed);
+                placed.Add(position);
                 _pickups.Add(new WeaponPickup(definition, position, _groundY, _materials, _root,
                     _pickupScale, _visuals));
             }
+        }
+
+        private static void Shuffle<T>(List<T> list, SimulationRandom random)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = random.Range(0, i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
+        }
+
+        /// <summary>The spawn areas in a seeded order; pickups walk this list round-robin.</summary>
+        private List<Rect> ResolveShuffledAreas(SimulationRandom random)
+        {
+            var areas = new List<Rect>();
+
+            List<WeaponSpawnArea> authored = _arena.WeaponAreas;
+            if (authored != null && authored.Count > 0)
+            {
+                for (int i = 0; i < authored.Count; i++) areas.Add(authored[i].Footprint);
+                Shuffle(areas, random);
+            }
+            else
+            {
+                areas.Add(_arena.HasClearing ? _arena.ClearingRect : _arena.PlayableRect);
+            }
+
+            return areas;
         }
 
         private List<WeaponDefinition> ResolveCatalog()
@@ -123,10 +167,11 @@ namespace CubeSim.Combat
             return eligible;
         }
 
-        private Vector3 PickSpawnPosition(SimulationRandom random)
+        private Vector3 PickSpawnPosition(SimulationRandom random, Rect area, List<Vector3> placed)
         {
-            Rect area = ResolveSpawnArea(random);
             float inset = Mathf.Min(1.2f, Mathf.Min(area.width, area.height) * 0.25f);
+            Vector3 bestClear = new Vector3(area.center.x, _groundY, area.center.y);
+            bool foundClear = false;
 
             for (int attempt = 0; attempt < 64; attempt++)
             {
@@ -135,36 +180,47 @@ namespace CubeSim.Combat
                     _groundY,
                     random.Range(area.yMin + inset, area.yMax - inset));
 
-                if (!_arena.OverlapsWall(new Vector2(candidate.x, candidate.z), 0.6f)) return candidate;
-            }
+                if (_arena.OverlapsWall(new Vector2(candidate.x, candidate.z), 0.6f)) continue;
 
-            Debug.LogWarning("[CubeSim] Weapon spawn fell back to the area centre.");
-            return new Vector3(area.center.x, _groundY, area.center.y);
-        }
-
-        private Rect ResolveSpawnArea(SimulationRandom random)
-        {
-            List<WeaponSpawnArea> authored = _arena.WeaponAreas;
-            if (authored != null && authored.Count > 0)
-            {
-                // Weighted pick, still entirely seed driven.
-                float total = 0f;
-                for (int i = 0; i < authored.Count; i++) total += authored[i].Weight;
-
-                if (total > 0f)
+                if (!foundClear)
                 {
-                    float roll = random.Range(0f, total);
-                    for (int i = 0; i < authored.Count; i++)
-                    {
-                        roll -= authored[i].Weight;
-                        if (roll <= 0f) return authored[i].Footprint;
-                    }
+                    // Remember the first wall-clear point: if separation never works out (a tiny
+                    // area with a pickup already in it), a clear-but-close spot beats the centre.
+                    bestClear = candidate;
+                    foundClear = true;
                 }
 
-                return authored[authored.Count - 1].Footprint;
+                if (IsSeparated(candidate, placed)) return candidate;
             }
 
-            return _arena.HasClearing ? _arena.ClearingRect : _arena.PlayableRect;
+            if (!foundClear) Debug.LogWarning("[CubeSim] Weapon spawn fell back to the area centre.");
+            return bestClear;
+        }
+
+        private static bool IsSeparated(Vector3 candidate, List<Vector3> placed)
+        {
+            for (int i = 0; i < placed.Count; i++)
+            {
+                Vector3 delta = placed[i] - candidate;
+                delta.y = 0f;
+                if (delta.sqrMagnitude < MinPickupSeparation * MinPickupSeparation) return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Drops a fresh weapon on the floor mid-round (Lucky Block). Uses the first eligible
+        /// catalog entry, so a knife map drops knives; the position is nudged to legal floor.
+        /// </summary>
+        public WeaponPickup SpawnPickup(Vector3 position)
+        {
+            List<WeaponDefinition> catalog = ResolveCatalog();
+            if (catalog.Count == 0) return null;
+            var pickup = new WeaponPickup(catalog[0], FindValidDropPosition(position), _groundY, _materials, _root,
+                _pickupScale, _visuals);
+            _pickups.Add(pickup);
+            return pickup;
         }
 
         // ---------------------------------------------------------------- per-step
@@ -174,6 +230,18 @@ namespace CubeSim.Combat
             if (!_config.enabled) return;
 
             for (int i = 0; i < _pickups.Count; i++) _pickups[i].Tick(deltaTime);
+
+            // A loose weapon must stay reachable. It was dropped inside the safe zone, but the
+            // collapse keeps moving: once the boundary passes it, nobody can ever pick it up and a
+            // one-knife fight stalls. Walk it back to the nearest valid floor, same deterministic
+            // ring search a drop uses, so it rides the shrinking zone instead of dying outside it.
+            for (int i = 0; i < _pickups.Count; i++)
+            {
+                WeaponPickup pickup = _pickups[i];
+                if (!pickup.Available) continue;
+                if (IsValidDrop(pickup.Position, 0.65f)) continue;
+                pickup.SetPosition(FindValidDropPosition(pickup.Position));
+            }
 
             ResolvePickups(racers);
             TickOwnership(deltaTime, racers);
@@ -326,6 +394,7 @@ namespace CubeSim.Combat
             {
                 Racer other = racers[i];
                 if (!other.IsActive || other == racer) continue;
+                if (!_config.friendlyFire && other.Team == racer.Team) continue;
 
                 Vector3 offset = other.Position - racer.Position;
                 offset.y = 0f;
@@ -372,6 +441,7 @@ namespace CubeSim.Combat
             {
                 Racer other = racers[i];
                 if (!other.IsActive || other == racer) continue;
+                if (!_config.friendlyFire && other.Team == racer.Team) continue;
 
                 Vector3 offset = other.Position - racer.Position;
                 offset.y = 0f;

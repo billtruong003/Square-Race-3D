@@ -17,8 +17,18 @@ namespace CubeSim.Arena.Authored
         [Tooltip("Offset into the spin, so mirrored rotors do not move in lockstep.")]
         [SerializeField] private float phaseDegrees = 0f;
 
+        [Header("Blade")]
+        [Tooltip("Hearts a bar takes off a racer it sweeps into. 0 = the rotor only pushes, which is " +
+                 "what a rotor is; cutting belongs to the saw blade object.")]
+        [SerializeField] private float damagePerHit = 0f;
+
+        [Tooltip("Seconds before the same racer can be cut again by this rotor.")]
+        [SerializeField] private float hitCooldown = 0.8f;
+
         public float DegreesPerSecond => degreesPerSecond;
         public float PhaseDegrees => phaseDegrees;
+        public float DamagePerHit => Mathf.Max(0f, damagePerHit);
+        public float HitCooldown => Mathf.Max(0.05f, hitCooldown);
 
         public void Configure(float speed, float phase)
         {

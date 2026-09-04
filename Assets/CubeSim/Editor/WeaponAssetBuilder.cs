@@ -16,22 +16,15 @@ namespace CubeSim.EditorTools
     {
         public const string LibraryPath = "Assets/CubeSim/Data/WeaponVisualLibrary.asset";
 
-        private const string Polygon = "Assets/POLYGON weapons/Assets_official/";
-
         /// <summary>
-        /// One weapon's visual tuning. The packs disagree wildly about model size and local axes -
-        /// a POLYGON pistol is 0.39 m long down +Z, an RPG spear is 1.37 m tall up +Y - so every
-        /// value here is measured per weapon rather than shared. <see cref="Scale"/> normalises the
-        /// model to a common ~1.5 m length - about a third of a racer, which is the smallest a weapon
-        /// can be and still be identifiable from directly above - and the pickup and equipped
-        /// multipliers then size it for each presentation. None of this touches attack range or damage.
+        /// One weapon's visual tuning. Base scale and pose are measured off the model's bounds at
+        /// build time (packs disagree wildly about size and local axes), so only the per-context
+        /// multipliers live here. None of this touches attack range or damage.
         /// </summary>
         private struct Spec
         {
             public string Id;
             public string Path;
-            public float Scale;
-            public Vector3 Orientation;
             public float PickupScale;
             public float EquippedScale;
             public Vector3 EquippedEuler;
@@ -42,22 +35,18 @@ namespace CubeSim.EditorTools
             public Vector3 ProjectileEuler;
         }
 
-        // The arsenal is exactly two knives - the POLYGON combat knife and the Kenney cooking
-        // knife - by request: no other melee and no guns on any map. Both are laid flat with the
-        // full profile facing the top-down camera; scales target ~2m of model, half a racer.
+        /// <summary>Every weapon is normalised to this length - reads big and juicy from above.</summary>
+        private const float TargetLength = 6.0f;   // doubled by request: the knife must read from the top-down shot
+
+        // The arsenal is exactly one weapon - the Kenney cooking knife - by request: no combat
+        // knife, no other melee, no guns on any map. Laid flat with the full profile facing the
+        // top-down camera; scale is measured off the model's bounds, never typed.
         private static readonly Spec[] Melee =
         {
             new Spec
             {
-                Id = "Knife", Path = Polygon + "knife_prefab.prefab",
-                Scale = 5.2f, Orientation = new Vector3(90f, 0f, 0f),
-                PickupScale = 1.1f, EquippedScale = 0.95f, EquippedEuler = Vector3.zero,
-            },
-            new Spec
-            {
                 Id = "Cleaver", Path = "Assets/KenneyDungeon/FBX format 1/cooking-knife.prefab",
-                Scale = 2.8f, Orientation = new Vector3(0f, -90f, 0f),
-                PickupScale = 1.1f, EquippedScale = 1.0f, EquippedEuler = Vector3.zero,
+                PickupScale = 1.0f, EquippedScale = 1.0f, EquippedEuler = Vector3.zero,
             },
         };
 
@@ -85,13 +74,15 @@ namespace CubeSim.EditorTools
         }
 
         /// <summary>
-        /// Orientation is measured, not typed: the model's longest bounds axis becomes +Z (the aim)
-        /// and its thinnest becomes +Y (facing the camera) - so every weapon, from any pack, lies
-        /// flat with its full profile up. The hand-tuned eulers this replaces kept half the arsenal
-        /// edge-on.
+        /// Pose and size are measured, not typed: the model's longest bounds axis becomes +Z (the
+        /// aim) and its thinnest becomes +Y (facing the camera) - so every weapon, from any pack,
+        /// lies flat with its full profile up - and the longest extent comes back so the caller can
+        /// normalise the model to <see cref="TargetLength"/> metres regardless of pack scale.
         /// </summary>
-        private static Vector3 MeasureOrientation(GameObject prefab)
+        private static Vector3 MeasurePose(GameObject prefab, out float longestExtent)
         {
+            longestExtent = 1f;
+
             GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
             instance.transform.position = Vector3.zero;
             instance.transform.rotation = Quaternion.identity;
@@ -119,6 +110,7 @@ namespace CubeSim.EditorTools
                 if (extents[i] < extents[thinnest]) thinnest = i;
             }
 
+            longestExtent = Mathf.Max(0.01f, extents[longest]);
             if (longest == thinnest) return Vector3.zero;
 
             // LookRotation maps +Z onto the long axis and +Y onto the thin one; the inverse is the
@@ -148,20 +140,25 @@ namespace CubeSim.EditorTools
                     }
                 }
 
+                Vector3 orientation = MeasurePose(prefab, out float longestExtent);
+
                 entries.Add(new WeaponVisualLibrary.Entry
                 {
                     id = spec.Id,
                     prefab = prefab,
-                    scale = spec.Scale,
+                    scale = TargetLength / longestExtent,
                     pickupScale = Mathf.Max(0.01f, spec.PickupScale),
                     equippedScale = Mathf.Max(0.01f, spec.EquippedScale),
-                    orientation = MeasureOrientation(prefab),
+                    orientation = orientation,
                     equippedEuler = spec.EquippedEuler,
                     offset = spec.Offset,
                     projectilePrefab = projectile,
                     projectileVisualScale = spec.ProjectileScale > 0f ? spec.ProjectileScale : 1f,
                     projectileEuler = spec.ProjectileEuler
                 });
+
+                Debug.Log($"[CubeSim] Weapon '{spec.Id}': native {longestExtent:F2}m -> " +
+                          $"scale {TargetLength / longestExtent:F2} for {TargetLength:F1}m.");
             }
         }
 
@@ -173,13 +170,6 @@ namespace CubeSim.EditorTools
         {
             return new List<WeaponDefinition>
             {
-                new WeaponDefinition
-                {
-                    id = "Knife", category = WeaponCategory.Melee,
-                    damage = 1f, attackCooldown = 0.7f, attackRange = 1.9f, attackArc = 130f,
-                    color = new Color(0.85f, 0.88f, 0.92f),
-                    releaseMode = WeaponReleaseMode.TimeBased, holdDuration = 8f
-                },
                 new WeaponDefinition
                 {
                     id = "Cleaver", category = WeaponCategory.Melee,

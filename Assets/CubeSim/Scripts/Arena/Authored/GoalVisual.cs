@@ -46,7 +46,15 @@ namespace CubeSim.Arena.Authored
             switch (goal.VisualType)
             {
                 case GoalVisualType.FinishPad:
-                    BuildPad(root, footprint, groundY, material, 0.12f);
+                    // Solid colour pad, calm emission - the colour itself is the signal - with a
+                    // brighter clean border frame carrying the glow instead of the whole slab.
+                    Material padMaterial = materials.GetGoalMaterial(goal.Id + "_pad", color, 0.4f);
+                    BuildPad(root, footprint, groundY, padMaterial, 0.1f);
+
+                    Material frame = materials.GetGoalMaterial(goal.Id + "_frame",
+                        Color.Lerp(color, Color.white, 0.35f), 1.2f);
+                    BuildBorderFrame(root, footprint, groundY, frame, 0.35f, 0.16f);
+
                     BuildCheckerEdge(root, footprint, groundY, materials, color);
                     break;
 
@@ -67,8 +75,9 @@ namespace CubeSim.Arena.Authored
         }
 
         /// <summary>
-        /// Hazards get the same flat glowing pad treatment as goals. In the reference the red danger
-        /// zone is as visually loud as the green destination, and it reads as the counterpart to it.
+        /// The deadzone look: a solid deep-red floor with almost no glow - the colour stays flat
+        /// and honest - wrapped in an amber/black hazard-tape border so it reads as "danger" from
+        /// any zoom without blooming all over the map.
         /// </summary>
         public static void BuildHazard(HazardArea hazard, MaterialLibrary materials, float groundY,
             Transform parent)
@@ -76,23 +85,71 @@ namespace CubeSim.Arena.Authored
             if (hazard == null) return;
 
             Rect footprint = hazard.Footprint;
-            Color color = hazard.IsLethal ? new Color(0.95f, 0.08f, 0.10f) : new Color(0.92f, 0.12f, 0.13f);
-            Material material = materials.GetGoalMaterial("hazard_" + hazard.Id, color, 0.9f);
 
             var root = new GameObject("HazardVisual_" + hazard.Id).transform;
             root.SetParent(parent, false);
 
-            BuildPad(root, footprint, groundY, material, 0.1f);
+            Material floor = materials.GetGoalMaterial("hazard_floor",
+                new Color(0.52f, 0.07f, 0.09f), 0.06f);
+            BuildPad(root, footprint, groundY, floor, 0.08f);
 
-            // A few dark bars across it, so it reads as hazardous rather than as another goal.
-            Material dark = materials.GetGoalMaterial("hazard_bars", color * 0.12f, 0f);
-            for (int i = 0; i < 4; i++)
+            Material amber = materials.GetGoalMaterial("hazard_tape_amber",
+                new Color(1f, 0.65f, 0.05f), 0.3f);
+            Material black = materials.GetGoalMaterial("hazard_tape_black",
+                new Color(0.09f, 0.09f, 0.1f), 0f);
+            BuildStripedBorder(root, footprint, groundY, amber, black, 0.4f, 0.14f);
+        }
+
+        /// <summary>Four clean bars framing the footprint - the goal's glow lives here.</summary>
+        private static void BuildBorderFrame(Transform parent, Rect footprint, float groundY,
+            Material material, float thickness, float height)
+        {
+            float y = groundY + height * 0.5f + 0.06f;
+
+            GameObject north = Box(parent, "Frame_N", material);
+            north.transform.localPosition = new Vector3(footprint.center.x, y, footprint.yMax - thickness * 0.5f);
+            north.transform.localScale = new Vector3(footprint.width, height, thickness);
+
+            GameObject south = Box(parent, "Frame_S", material);
+            south.transform.localPosition = new Vector3(footprint.center.x, y, footprint.yMin + thickness * 0.5f);
+            south.transform.localScale = new Vector3(footprint.width, height, thickness);
+
+            GameObject west = Box(parent, "Frame_W", material);
+            west.transform.localPosition = new Vector3(footprint.xMin + thickness * 0.5f, y, footprint.center.y);
+            west.transform.localScale = new Vector3(thickness, height, footprint.height);
+
+            GameObject east = Box(parent, "Frame_E", material);
+            east.transform.localPosition = new Vector3(footprint.xMax - thickness * 0.5f, y, footprint.center.y);
+            east.transform.localScale = new Vector3(thickness, height, footprint.height);
+        }
+
+        /// <summary>Hazard-tape border: alternating segments around the perimeter.</summary>
+        private static void BuildStripedBorder(Transform parent, Rect footprint, float groundY,
+            Material a, Material b, float thickness, float height)
+        {
+            float y = groundY + height * 0.5f + 0.05f;
+            const float SegmentLength = 1.1f;
+
+            void Edge(Vector3 start, Vector3 direction, float length, bool horizontal, string name)
             {
-                GameObject bar = Box(root, "Bar_" + i, dark);
-                float x = Mathf.Lerp(footprint.xMin, footprint.xMax, (i + 0.5f) / 4f);
-                bar.transform.localPosition = new Vector3(x, groundY + 0.12f, footprint.center.y);
-                bar.transform.localScale = new Vector3(footprint.width * 0.09f, 0.07f, footprint.height * 0.72f);
+                int segments = Mathf.Max(1, Mathf.RoundToInt(length / SegmentLength));
+                float step = length / segments;
+
+                for (int i = 0; i < segments; i++)
+                {
+                    GameObject seg = Box(parent, $"{name}_{i}", i % 2 == 0 ? a : b);
+                    Vector3 centre = start + direction * (step * (i + 0.5f));
+                    seg.transform.localPosition = new Vector3(centre.x, y, centre.z);
+                    seg.transform.localScale = horizontal
+                        ? new Vector3(step, height, thickness)
+                        : new Vector3(thickness, height, step);
+                }
             }
+
+            Edge(new Vector3(footprint.xMin, 0f, footprint.yMax - thickness * 0.5f), Vector3.right, footprint.width, true, "TapeN");
+            Edge(new Vector3(footprint.xMin, 0f, footprint.yMin + thickness * 0.5f), Vector3.right, footprint.width, true, "TapeS");
+            Edge(new Vector3(footprint.xMin + thickness * 0.5f, 0f, footprint.yMin), Vector3.forward, footprint.height, false, "TapeW");
+            Edge(new Vector3(footprint.xMax - thickness * 0.5f, 0f, footprint.yMin), Vector3.forward, footprint.height, false, "TapeE");
         }
 
         private static void BuildPad(Transform parent, Rect footprint, float groundY,

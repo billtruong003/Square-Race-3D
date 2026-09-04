@@ -25,6 +25,7 @@ namespace CubeSim.Core
         public VisualTheme visuals = new VisualTheme();
         public CameraDefinition camera = new CameraDefinition();
         public EndRules endRules = new EndRules();
+        public ModeConfig mode = new ModeConfig();
 
         public string ToJson(bool pretty = true) => JsonUtility.ToJson(this, pretty);
 
@@ -61,7 +62,22 @@ namespace CubeSim.Core
         ReachGoal = 1,
 
         /// <summary>No win check; the run stops only on the duration limit.</summary>
-        None = 2
+        None = 2,
+
+        /// <summary>Team formats: the episode ends when only one team still has racers alive.</summary>
+        LastTeamAlive = 3,
+
+        /// <summary>Coin Rush: runs to the clock, the racer holding the most coins wins.</summary>
+        MostCoins = 4,
+
+        /// <summary>Infection: the last uninfected cube standing wins.</summary>
+        LastClean = 5,
+
+        /// <summary>Team Race: the first team with requiredFinishers cubes home wins.</summary>
+        TeamFinishers = 6,
+
+        /// <summary>Paint War: runs to the clock, the racer with the highest Score (tiles) wins.</summary>
+        MostTiles = 7
     }
 
     [Serializable]
@@ -83,6 +99,9 @@ namespace CubeSim.Core
 
         [Tooltip("ReachGoal only: finishers needed before the run ends. 1 = first past the post.")]
         public int requiredFinishers = 1;
+
+        [Tooltip("Knockout race: the round ends when only this many unfinished cubes remain (dead cubes count toward the quota). 0 = off.")]
+        public int eliminateCount = 0;
     }
 
     [Serializable]
@@ -99,6 +118,14 @@ namespace CubeSim.Core
 
         [Tooltip("Above 0, overrides the height derived from arena bounds.")]
         public float heightOverride = 0f;
+
+        [Tooltip("Fraction of the screen width kept clear on the left for the leaderboard. The " +
+                 "arena is framed into the remaining width and slid right, so no racer ever " +
+                 "hides behind the HUD. 0 = centre the arena on the full screen.")]
+        [Range(0f, 0.4f)] public float leftReserve = 0f;
+
+        [Tooltip("Fraction of the screen height kept clear at the top (portrait HUD strip). The court is framed below it.")]
+        [Range(0f, 0.4f)] public float topReserve = 0f;
 
         public Color backgroundColor = new Color(0.09f, 0.09f, 0.10f, 1f);
     }

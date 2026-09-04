@@ -59,14 +59,14 @@ MonoBehaviour:
     racers:
       count: 10
       cubeSize: 2
-      speed: 10
+      speed: 11.5
       maxHealth: 3
       visual: EyeCube
       visualHeightRatio: 1.7
       racerVisualScale: 1
       tintModels: 1
-      weaponPickupScale: 2.4
-      equippedWeaponScale: 2
+      weaponPickupScale: 1
+      equippedWeaponScale: 1
       weaponAnchor:
         sideOffset: 0.85
         heightOffset: 1.45
@@ -83,6 +83,7 @@ MonoBehaviour:
         baseWidth: 1.25
         minPointDistance: 0.28
         heightOffset: 0.06
+        rideRacerCentre: 1
         lifetime: 0
         disappearMode: 3
         deathRetractDuration: 0.5
@@ -130,31 +131,13 @@ MonoBehaviour:
       allowedIds: []
       allowedCategories: 
       pickupRadius: 0.6
+      friendlyFire: 1
       releaseMode: 0
       holdDuration: 6
       ammo: 4
       dropRearmDelay: 0.5
       repickupCooldown: 2
       catalog:
-      - id: Knife
-        category: 0
-        damage: 1
-        attackCooldown: 0.7
-        attackRange: 1.9
-        attackArc: 130
-        hitscan: 0
-        projectileSpeed: 26
-        projectileRadius: 0.18
-        requireLineOfSight: 1
-        releaseMode: 0
-        useOwnRelease: 0
-        holdDuration: 8
-        ammo: 5
-        visualPrefabPath: 
-        color: {r: 0.85, g: 0.88, b: 0.92, a: 1}
-        visualSize: {x: 0.09, y: 0.09, z: 0.95}
-        gripOffset: {x: 0, y: 0, z: 0}
-        gripEuler: {x: 0, y: 0, z: 0}
       - id: Cleaver
         category: 0
         damage: 1
@@ -180,7 +163,7 @@ MonoBehaviour:
       wallColor: {r: 0.3, g: 0.3, b: 0.33, a: 1}
       shadowColor: {r: 0.19, g: 0.19, b: 0.22, a: 1}
       pressureColor: {r: 1, g: 0.55, b: 0.06, a: 1}
-      pressureEmission: 0.5
+      pressureEmission: 1
       racerEmission: 0.55
       palette:
       - {r: 0.95, g: 0.16, b: 0.16, a: 1}
@@ -193,6 +176,8 @@ MonoBehaviour:
       - {r: 0.55, g: 0.22, b: 0.95, a: 1}
       - {r: 0.95, g: 0.55, b: 0.72, a: 1}
       - {r: 0.72, g: 0.95, b: 0.3, a: 1}
+      - {r: 0.1, g: 0.9, b: 0.7, a: 1}
+      - {r: 0.95, g: 0.95, b: 0.95, a: 1}
       post:
         enabled: 1
         bloom: 1
@@ -217,8 +202,9 @@ MonoBehaviour:
       orthographic: 0
       fieldOfView: 44
       tiltDegrees: 3
-      margin: 1.18
+      margin: 1.06
       heightOverride: 0
+      leftReserve: 0.18
       backgroundColor: {r: 0.09, g: 0.09, b: 0.1, a: 1}
     endRules:
       winCondition: 0

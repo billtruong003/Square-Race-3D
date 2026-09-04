@@ -39,7 +39,18 @@ namespace CubeSim.Visuals
         private Racer[] _sorted;
         private Font _font;
         private RectTransform _panel;
+        private RectTransform _ruleRoot;
+        private Text _ruleText;
+        private Text _counterText;
+        private System.Func<string> _counter;
+        private System.Func<bool> _urgent;
+        private CanvasScaler _scaler;
+        private bool _portrait;
         private float _refreshTimer;
+
+        private const int PortraitColumns = 3;
+        private const float PortraitGap = 8f;
+        private const float PortraitTop = 150f;
 
         public static LeaderboardOverlay Create(Transform parent)
         {
@@ -49,12 +60,17 @@ namespace CubeSim.Visuals
         }
 
         /// <summary>Builds one row per racer. Called when an episode starts.</summary>
-        public void Bind(Racer[] racers)
+        public void Bind(Racer[] racers) => Bind(racers, false);
+
+        /// <summary>Portrait: a strip of columns across the top instead of a column down the left.</summary>
+        public void Bind(Racer[] racers, bool portrait)
         {
+            _portrait = portrait;
             _racers = racers;
             _sorted = racers != null ? (Racer[])racers.Clone() : null;
 
             if (_panel == null) BuildCanvas();
+            ApplyLayout();
 
             for (int i = _rows.Count - 1; i >= 0; i--) Destroy(_rows[i].Root.gameObject);
             _rows.Clear();
@@ -63,6 +79,84 @@ namespace CubeSim.Visuals
 
             for (int i = 0; i < racers.Length; i++) _rows.Add(BuildRow(i));
             Refresh();
+            PlaceRuleStrip();
+        }
+
+        /// <summary>
+        /// The rule strip: what this round is, and a live counter of how close it is to ending.
+        /// Sits right under the standings so the two read as one block.
+        /// </summary>
+        public void SetRule(string rule, System.Func<string> counter, System.Func<bool> urgent)
+        {
+            if (_panel == null) BuildCanvas();
+            if (_ruleRoot == null) BuildRuleStrip();
+            _ruleText.text = rule ?? "";
+            _counter = counter;
+            _urgent = urgent;
+            _ruleRoot.gameObject.SetActive(!string.IsNullOrEmpty(rule));
+            PlaceRuleStrip();
+            RefreshRule();
+        }
+
+        private void BuildRuleStrip()
+        {
+            var go = new GameObject("RuleStrip");
+            go.transform.SetParent(_panel.parent, false);
+            _ruleRoot = go.AddComponent<RectTransform>();
+            var bg = go.AddComponent<Image>();
+            bg.color = new Color(0f, 0f, 0f, 0.55f);
+
+            _ruleText = BuildText(go.transform, "Rule", 19, TextAnchor.MiddleCenter);
+            _ruleText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            _ruleText.fontStyle = FontStyle.Bold;
+            _ruleText.color = new Color(1f, 0.85f, 0.3f);
+            _ruleText.rectTransform.anchorMin = new Vector2(0f, 0.5f);
+            _ruleText.rectTransform.anchorMax = new Vector2(1f, 1f);
+            _ruleText.rectTransform.offsetMin = new Vector2(8f, 0f);
+            _ruleText.rectTransform.offsetMax = new Vector2(-8f, -4f);
+
+            _counterText = BuildText(go.transform, "Counter", 24, TextAnchor.MiddleCenter);
+            _counterText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            _counterText.fontStyle = FontStyle.Bold;
+            _counterText.rectTransform.anchorMin = new Vector2(0f, 0f);
+            _counterText.rectTransform.anchorMax = new Vector2(1f, 0.5f);
+            _counterText.rectTransform.offsetMin = new Vector2(8f, 4f);
+            _counterText.rectTransform.offsetMax = new Vector2(-8f, 0f);
+        }
+
+        private void PlaceRuleStrip()
+        {
+            if (_ruleRoot == null) return;
+            int count = _racers != null ? _racers.Length : 0;
+            const float StripHeight = 76f;
+            if (_portrait)
+            {
+                int columns = Mathf.Min(PortraitColumns, Mathf.Max(1, count));
+                int lines = Mathf.CeilToInt(count / (float)columns);
+                float gridWidth = columns * RowWidth + (columns - 1) * PortraitGap;
+                _ruleRoot.anchorMin = _ruleRoot.anchorMax = new Vector2(0.5f, 1f);
+                _ruleRoot.pivot = new Vector2(0.5f, 1f);
+                _ruleRoot.sizeDelta = new Vector2(gridWidth, StripHeight);
+                _ruleRoot.anchoredPosition = new Vector2(0f, -(PortraitTop + lines * RowHeight + 6f));
+            }
+            else
+            {
+                // Landscape: the strip is wider than a row so the rule fits on one line; it still
+                // starts at the column's left edge and lives inside the reserved side band.
+                _ruleRoot.anchorMin = _ruleRoot.anchorMax = new Vector2(0f, 0.5f);
+                _ruleRoot.pivot = new Vector2(0f, 1f);
+                _ruleRoot.sizeDelta = new Vector2(RowWidth + 130f, StripHeight);
+                _ruleRoot.anchoredPosition = new Vector2(16f, -(count * 0.5f * RowHeight + 12f));
+            }
+        }
+
+        private void RefreshRule()
+        {
+            if (_ruleRoot == null || !_ruleRoot.gameObject.activeSelf) return;
+            _counterText.text = _counter != null ? _counter() : "";
+            bool urgent = _urgent != null && _urgent();
+            _counterText.color = urgent && Mathf.FloorToInt(Time.unscaledTime * 4f) % 2 == 0
+                ? new Color(1f, 0.25f, 0.2f) : Color.white;
         }
 
         private void Update()
@@ -74,6 +168,7 @@ namespace CubeSim.Visuals
 
             _refreshTimer = RefreshInterval;
             Refresh();
+            RefreshRule();
         }
 
         private void Refresh()
@@ -105,6 +200,7 @@ namespace CubeSim.Visuals
                     : "";
 
                 string name = string.IsNullOrEmpty(racer.DisplayName) ? racer.Id : racer.DisplayName;
+                if (!string.IsNullOrEmpty(racer.Badge)) name = racer.Badge + " " + name;
                 row.Name.text = state.Length > 0 ? $"{state} {name}" : name;
 
                 // Hearts only make sense on the hearts scale; a 100 hp prototype hides them.
@@ -122,7 +218,9 @@ namespace CubeSim.Visuals
                 }
 
                 string score = "";
-                if (racer.FoodEaten > 0) score = racer.FoodEaten.ToString();
+                if (racer.Score > 0) score = racer.Score.ToString();
+                if (racer.Coins > 0) score += (score.Length > 0 ? " " : "") + "$" + racer.Coins;
+                if (racer.FoodEaten > 0) score += (score.Length > 0 ? " " : "") + racer.FoodEaten;
                 if (racer.Kills > 0) score += (score.Length > 0 ? " " : "") + racer.Kills + "KO";
                 row.Score.text = score;
 
@@ -138,6 +236,9 @@ namespace CubeSim.Visuals
 
             if (a.IsActive)
             {
+                if (a.Infected != b.Infected) return a.Infected ? 1 : -1;
+                if (a.Score != b.Score) return b.Score.CompareTo(a.Score);
+                if (a.Coins != b.Coins) return b.Coins.CompareTo(a.Coins);
                 if (a.Kills != b.Kills) return b.Kills.CompareTo(a.Kills);
                 if (a.FoodEaten != b.FoodEaten) return b.FoodEaten.CompareTo(a.FoodEaten);
                 if (!Mathf.Approximately(a.DistanceTravelled, b.DistanceTravelled))
@@ -171,6 +272,7 @@ namespace CubeSim.Visuals
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 1f;
+            _scaler = scaler;
 
             var panelGo = new GameObject("Panel");
             panelGo.transform.SetParent(canvasGo.transform, false);
@@ -179,6 +281,28 @@ namespace CubeSim.Visuals
             _panel.anchorMax = new Vector2(0f, 0.5f);
             _panel.pivot = new Vector2(0f, 0.5f);
             _panel.anchoredPosition = new Vector2(16f, 0f);
+        }
+
+        private void ApplyLayout()
+        {
+            if (_portrait)
+            {
+                _scaler.referenceResolution = new Vector2(1080f, 1920f);
+                _scaler.matchWidthOrHeight = 0f;
+                _panel.anchorMin = new Vector2(0.5f, 1f);
+                _panel.anchorMax = new Vector2(0.5f, 1f);
+                _panel.pivot = new Vector2(0.5f, 1f);
+                _panel.anchoredPosition = new Vector2(0f, -PortraitTop);
+            }
+            else
+            {
+                _scaler.referenceResolution = new Vector2(1920f, 1080f);
+                _scaler.matchWidthOrHeight = 1f;
+                _panel.anchorMin = new Vector2(0f, 0.5f);
+                _panel.anchorMax = new Vector2(0f, 0.5f);
+                _panel.pivot = new Vector2(0f, 0.5f);
+                _panel.anchoredPosition = new Vector2(16f, 0f);
+            }
         }
 
         private Row BuildRow(int index)
@@ -191,8 +315,21 @@ namespace CubeSim.Visuals
             rect.pivot = new Vector2(0f, 0.5f);
             rect.anchorMin = rect.anchorMax = new Vector2(0f, 0.5f);
 
-            float top = (_racers.Length - 1) * 0.5f * RowHeight;
-            rect.anchoredPosition = new Vector2(0f, top - index * RowHeight);
+            if (_portrait)
+            {
+                // A grid of columns hanging from the top edge, centred on the frame.
+                int columns = Mathf.Min(PortraitColumns, Mathf.Max(1, _racers.Length));
+                float gridWidth = columns * RowWidth + (columns - 1) * PortraitGap;
+                int column = index % columns, line = index / columns;
+                rect.pivot = new Vector2(0f, 1f);
+                rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
+                rect.anchoredPosition = new Vector2(-gridWidth * 0.5f + column * (RowWidth + PortraitGap), -line * RowHeight);
+            }
+            else
+            {
+                float top = (_racers.Length - 1) * 0.5f * RowHeight;
+                rect.anchoredPosition = new Vector2(0f, top - index * RowHeight);
+            }
 
             var group = rowGo.AddComponent<CanvasGroup>();
 

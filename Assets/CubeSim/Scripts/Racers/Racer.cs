@@ -89,6 +89,29 @@ namespace CubeSim.Racers
         /// <summary>Pellets eaten this episode - the Pet Survival score.</summary>
         public int FoodEaten;
 
+        /// <summary>Coins collected this episode - the Coin Rush score.</summary>
+        public int Coins;
+
+        /// <summary>Speed to fall back to when a bumper boost runs out.</summary>
+        public float BaseSpeed;
+
+        /// <summary>Run time at which the current boost ends; 0 = no boost.</summary>
+        public float BoostUntil;
+
+        /// <summary>Mode score shown on the leaderboard: paint tiles, grand prix points.</summary>
+        public int Score;
+
+        /// <summary>Short glyph next to the name: infected, bomb holder, shielded.</summary>
+        public string Badge = "";
+
+        public bool Infected;
+
+        /// <summary>Hits this racer can absorb before health is touched (Lucky Block shield).</summary>
+        public int Shield;
+
+        /// <summary>Which palette slot this racer wears; stable across rounds that drop racers.</summary>
+        public int PaletteIndex = -1;
+
         public bool Armed => Weapon != null;
 
         /// <summary>Alive and still racing - not retired in a goal.</summary>

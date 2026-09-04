@@ -22,7 +22,7 @@ namespace CubeSim.Visuals
         private static readonly HashSet<SimSoundId> AlwaysPlay = new HashSet<SimSoundId>
         {
             SimSoundId.RacerHit, SimSoundId.RacerDeath, SimSoundId.CrushDeath,
-            SimSoundId.GoalReached, SimSoundId.FoodEaten, SimSoundId.WallBreak
+            SimSoundId.GoalReached, SimSoundId.FoodEaten, SimSoundId.WallBreak, SimSoundId.RockBreak
         };
 
         private const int Voices = 12;

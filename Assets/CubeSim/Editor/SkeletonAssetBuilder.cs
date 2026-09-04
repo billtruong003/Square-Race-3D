@@ -169,6 +169,10 @@ namespace CubeSim.EditorTools
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
+            // SetEntries above replaces the whole list, which silently dropped the eye cube once
+            // already (plain no-eye cubes, Racer_00 names). Re-register it every rebuild.
+            EyeCubeAssetBuilder.Build();
+
             return AssetDatabase.LoadAssetAtPath<RacerVisualLibrary>(VisualLibraryPath);
         }
     }

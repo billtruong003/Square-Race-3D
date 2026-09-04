@@ -55,7 +55,8 @@ namespace CubeSim.EditorTools
                 if (outlineType.IsInstanceOfType(c)) { component = c; break; }
             }
 
-            if (component == null)
+            bool added = component == null;
+            if (added)
             {
                 component = profile.Add(outlineType, true);
 
@@ -66,9 +67,14 @@ namespace CubeSim.EditorTools
                 AssetDatabase.AddObjectToAsset(component, profile);
             }
 
-            Configure(component);
-
-            ConfigurePostProcessing(profile, post);
+            // An existing profile is the user's hand-tuned look (outline thresholds, bloom). Only a
+            // profile that did not exist yet gets the defaults below; a scene rebuild must never
+            // write a single post-processing value over it.
+            if (isNew || added)
+            {
+                Configure(component);
+                ConfigurePostProcessing(profile, post);
+            }
 
             EditorUtility.SetDirty(profile);
             AssetDatabase.SaveAssets();

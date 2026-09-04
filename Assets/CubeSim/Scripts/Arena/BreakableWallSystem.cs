@@ -34,6 +34,12 @@ namespace CubeSim.Arena
             public float BreakTimer;
             public float FlashTimer;
 
+            // Hit shake: the baked visual children (rock model) jitter for a moment. Only
+            // collider-free children move, so the simulation never sees the shake.
+            public Transform[] ShakeTargets;
+            public Vector3[] ShakeBase;
+            public float ShakeTimer;
+
             public readonly HashSet<int> UniqueRacers = new HashSet<int>();
             public readonly Dictionary<int, float> LastContact = new Dictionary<int, float>();
         }
@@ -54,10 +60,10 @@ namespace CubeSim.Arena
         public int RegisteredHits { get; private set; }
 
         /// <summary>(wall id, racer that landed the final hit)</summary>
-        public event Action<string, Racer> OnWallBroken;
+        public event Action<BreakableWall, Racer> OnWallBroken;
 
         /// <summary>(wall id, racer, hits remaining) - every impact that actually counted.</summary>
-        public event Action<string, Racer, int> OnWallHit;
+        public event Action<BreakableWall, Racer, int> OnWallHit;
 
         public BreakableWallSystem(ArenaRuntime arena, MaterialLibrary materials, VisualTheme theme)
         {
@@ -90,6 +96,8 @@ namespace CubeSim.Arena
                     Target = breakable.ResolveTarget()
                 };
 
+                if (breakable.IsRock) CollectShakeTargets(entry);
+
                 // A colour-gated wall gets its own tinted material so the gate reads as one at a
                 // glance; an accent override (rainbow gate layers) wins over both defaults.
                 Color accent = breakable.AccentOverride.a > 0f
@@ -101,11 +109,16 @@ namespace CubeSim.Arena
                 float strength = breakable.AccentOverride.a > 0f ? 0.8f
                     : breakable.ShowAccentColor && breakable.IsColorGated ? 0.55f : 0.22f;
 
-                entry.Material = materials.GetTinted("wall_break_" + breakable.Id,
-                    Color.Lerp(_wallColor, accent, strength),
-                    breakable.AccentOverride.a > 0f ? 0.5f : 0.15f);
+                // A wall with a baked look (rock model, glass gate) keeps its own materials;
+                // the runtime only swaps materials on plain box breakables.
+                if (!breakable.CustomVisual)
+                {
+                    entry.Material = materials.GetTinted("wall_break_" + breakable.Id,
+                        Color.Lerp(_wallColor, accent, strength),
+                        breakable.AccentOverride.a > 0f ? 0.5f : 0.15f);
 
-                if (entry.Renderer != null) entry.Renderer.sharedMaterial = entry.Material;
+                    if (entry.Renderer != null) entry.Renderer.sharedMaterial = entry.Material;
+                }
 
                 // The big countdown on the block face is the format: the number IS the tension.
                 // Only multi-hit walls get one; a single-touch gate has nothing to count down.
@@ -144,7 +157,8 @@ namespace CubeSim.Arena
             RegisteredHits++;
             entry.FlashTimer = entry.Wall.HitFlashDuration;
             UpdateCounter(entry);
-            OnWallHit?.Invoke(entry.Wall.Id, racer, Mathf.Max(0, entry.Target - entry.Count));
+            if (entry.ShakeTargets != null && entry.ShakeTargets.Length > 0) entry.ShakeTimer = ShakeDuration;
+            OnWallHit?.Invoke(entry.Wall, racer, Mathf.Max(0, entry.Target - entry.Count));
 
             if (entry.Count >= entry.Target) Break(entry, racer);
             else ApplyFeedback(entry);
@@ -174,6 +188,12 @@ namespace CubeSim.Arena
                 {
                     entry.FlashTimer -= deltaTime;
                     ApplyFeedback(entry);
+                }
+
+                if (entry.ShakeTimer > 0f)
+                {
+                    entry.ShakeTimer -= deltaTime;
+                    ApplyShake(entry);
                 }
 
                 if (!entry.Broken || entry.BreakTimer <= 0f) continue;
@@ -218,7 +238,7 @@ namespace CubeSim.Arena
                 entry.BreakTimer = entry.Wall.RemovalDuration;
             }
 
-            OnWallBroken?.Invoke(entry.Wall.Id, racer);
+            OnWallBroken?.Invoke(entry.Wall, racer);
         }
 
         /// <summary>
@@ -263,6 +283,8 @@ namespace CubeSim.Arena
         private void ApplyFeedback(Entry entry)
         {
             if (entry.Renderer == null) return;
+            // Baked looks (rock, glass) tell their own story; no tint pass on top.
+            if (entry.Wall.CustomVisual) return;
 
             BreakableWall wall = entry.Wall;
             Color accent = wall.IsColorGated ? wall.RequiredColor : new Color(1f, 0.72f, 0.2f);
@@ -285,6 +307,41 @@ namespace CubeSim.Arena
             _block.SetColor(BaseColorId, baseColor);
             _block.SetColor(EmissionColorId, accent * emission);
             entry.Renderer.SetPropertyBlock(_block);
+        }
+
+        private const float ShakeDuration = 0.26f;
+        private const float ShakeAmplitude = 0.05f;   // in the wall cube's local space: ~0.14 m on a 2.8 m boulder
+
+        private static void CollectShakeTargets(Entry entry)
+        {
+            var targets = new List<Transform>();
+            for (int i = 0; i < entry.Transform.childCount; i++)
+            {
+                Transform child = entry.Transform.GetChild(i);
+                if (child.GetComponentInChildren<Collider>() != null) continue;
+                if (child.GetComponentInChildren<Renderer>() == null) continue;
+                targets.Add(child);
+            }
+
+            entry.ShakeTargets = targets.ToArray();
+            entry.ShakeBase = new Vector3[targets.Count];
+            for (int i = 0; i < targets.Count; i++) entry.ShakeBase[i] = targets[i].localPosition;
+        }
+
+        /// <summary>A fast, decaying jitter on the rock model. Cosmetic: colliders never move.</summary>
+        private void ApplyShake(Entry entry)
+        {
+            float t = Mathf.Clamp01(entry.ShakeTimer / ShakeDuration);
+            float amp = ShakeAmplitude * t * t;
+            for (int i = 0; i < entry.ShakeTargets.Length; i++)
+            {
+                Transform target = entry.ShakeTargets[i];
+                if (target == null) continue;
+                if (t <= 0f) { target.localPosition = entry.ShakeBase[i]; continue; }
+                float phase = _time * 71f + i * 1.3f;
+                var offset = new Vector3(Mathf.Sin(phase) * amp, 0f, Mathf.Cos(phase * 1.37f) * amp);
+                target.localPosition = entry.ShakeBase[i] + offset;
+            }
         }
 
         /// <summary>Per-wall state for logs and validation.</summary>

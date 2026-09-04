@@ -11,7 +11,9 @@ namespace CubeSim.EditorTools
     /// Builds an authored arena prefab from an ASCII template file - the map contract made
     /// executable. '#' is solid wall mass, 'B' is a breakable wall (a door racers bash open),
     /// 'M' is a mega block (one huge breakable with a big countdown), 'C' is a colour gate (the
-    /// rect slices into coloured one-cell layers, each a breakable), 'D' is a cycling door that
+    /// rect slices into coloured one-cell layers, each openable only by the racer of that colour,
+    /// a couple of hits each), 'N' is a neutral white glass pane (anyone may hit it, but it takes
+    /// many hits), 'D' is a cycling door that
     /// slides open and shut on a clock, 'O' is a rotor room (a spinning cross of bars), '.' is
     /// open floor, and marker letters declare regions (G goal, X hazard, W weapon area, F food
     /// field, L/R spawn areas). Region marker cells are open floor.
@@ -32,8 +34,9 @@ namespace CubeSim.EditorTools
             public float DesignedCorridorWidth = 2.8f;
             public Color GoalColor = new Color(0.05f, 0.95f, 0.12f);
             public float GoalEmission = 0.55f;
-            // Two seconds of standing in the red zone costs a heart - punishing, not instant.
-            public float HazardDamagePerSecond = 0.5f;
+            // One heart per second: a straight dash across a 2-cell band costs a quarter heart, but
+            // bouncing around on it for three seconds is death. At half this the floor was decor.
+            public float HazardDamagePerSecond = 1.0f;
 
             /// <summary>Hits each breakable ('B') wall takes before it opens.</summary>
             public int BreakableHits = 40;
@@ -41,8 +44,25 @@ namespace CubeSim.EditorTools
             /// <summary>Hits for a mega block ('M') - the four-digit-counter centrepiece.</summary>
             public int MegaBlockHits = 600;
 
-            /// <summary>Hits per rainbow gate layer ('R').</summary>
+            /// <summary>Hits per colour-gated rainbow layer ('C') - only the matching racer counts.</summary>
             public int RainbowLayerHits = 2;
+
+            /// <summary>Hearts a saw blade takes per cut. Half a heart everywhere except the Saw format, so hazards wear racers down and knives finish them.</summary>
+            public float SawDamage = 0.5f;
+
+            /// <summary>Hits for a neutral white pane ('N') - anybody may break it, so it takes many.</summary>
+            public int NeutralGlassHits = 10;
+
+            /// <summary>
+            /// Above 0, every merged 'B' mass is cut into boulders of at most this many cells a side,
+            /// each its own breakable. A rock field then gets dug through tunnel by tunnel instead of
+            /// vanishing as one slab. 0 keeps the merged wall (a team-war pen door wants that).
+            /// </summary>
+            public int RockTileCells = 0;
+
+            /// <summary>Hearts a rotor bar ('O') takes off a racer per sweep. 0 = push only (a rotor
+            /// is a spinning pusher; the saw blade 'S' is the thing that cuts).</summary>
+            public float RotorDamage = 0f;
         }
 
         /// <summary>
@@ -99,9 +119,11 @@ namespace CubeSim.EditorTools
             BuildBreakables(root.transform, grid, columns, rows, cellW, cellH, settings);
             BuildMegaBlocks(root.transform, grid, columns, rows, cellW, cellH, settings);
             BuildRainbowGates(root.transform, grid, columns, rows, cellW, cellH, settings);
+            BuildNeutralGlass(root.transform, grid, columns, rows, cellW, cellH, settings);
             BuildDoors(root.transform, grid, columns, rows, cellW, cellH, settings);
             BuildRotors(root.transform, grid, columns, rows, cellW, cellH, settings);
             BuildRegions(root.transform, grid, columns, rows, cellW, cellH, settings);
+            AsciiDeviceBuilder.Build(root.transform, grid, columns, rows, cellW, cellH, settings);
 
             Directory.CreateDirectory(Path.GetDirectoryName(prefabPath));
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(root, prefabPath);
@@ -128,7 +150,8 @@ namespace CubeSim.EditorTools
             {
                 // Doors count as solid (their closed state is the map's shape); rotor rooms count
                 // as open (the sweep passes, the room is playable space).
-                var chars = row.Select(c => c == '#' || c == 'B' || c == 'M' || c == 'C' || c == 'D'
+                var chars = row.Select(c => c == '#' || c == 'B' || c == 'M' || c == 'C' ||
+                                            c == 'N' || c == 'D' || c == 'K' || c == '?'
                     ? AuthoredArenaSilhouette.Solid
                     : AuthoredArenaSilhouette.Open);
                 result.Add(AuthoredArenaSilhouette.Solid + new string(chars.ToArray()) +
@@ -186,7 +209,8 @@ namespace CubeSim.EditorTools
             holder.SetParent(parent, false);
 
             int index = 0;
-            foreach (RectInt cells in MergeRects(grid, columns, rows, c => c == 'B'))
+            foreach (RectInt merged in MergeRects(grid, columns, rows, c => c == 'B'))
+            foreach (RectInt cells in TileRect(merged, settings.RockTileCells))
             {
                 GameObject go = MakeWall(holder, $"Break_{index:D2}",
                     CellRect(cells, columns, rows, cellW, cellH), settings.WallHeight);
@@ -205,7 +229,27 @@ namespace CubeSim.EditorTools
                 bso.FindProperty("removalMode").enumValueIndex = (int)WallRemovalMode.ShrinkOut;
                 bso.ApplyModifiedPropertiesWithoutUndo();
 
+                AddRockVisual(go, index);
+                MarkCustomVisual(go);
+                MarkRock(go);
+
                 index++;
+            }
+        }
+
+        /// <summary>Cuts a rect into tiles of at most <paramref name="tile"/> cells a side; 0 = as is.</summary>
+        private static IEnumerable<RectInt> TileRect(RectInt rect, int tile)
+        {
+            if (tile <= 0)
+            {
+                yield return rect;
+                yield break;
+            }
+
+            for (int y = rect.yMin; y < rect.yMax; y += tile)
+            for (int x = rect.xMin; x < rect.xMax; x += tile)
+            {
+                yield return new RectInt(x, y, Mathf.Min(tile, rect.xMax - x), Mathf.Min(tile, rect.yMax - y));
             }
         }
 
@@ -219,25 +263,43 @@ namespace CubeSim.EditorTools
             int index = 0;
             foreach (RectInt cells in MergeRects(grid, columns, rows, c => c == 'M'))
             {
-                MakeBreakable(holder, $"Mega_{index:D2}", CellRect(cells, columns, rows, cellW, cellH),
+                GameObject go = MakeBreakable(holder, $"Mega_{index:D2}",
+                    CellRect(cells, columns, rows, cellW, cellH),
                     settings, settings.MegaBlockHits, new Color(1f, 0.55f, 0.85f, 1f));
+
+                AddRockVisual(go);
+                MarkCustomVisual(go);
+                MarkRock(go);
                 index++;
             }
         }
 
         /// <summary>
-        /// 'R': the rect slices into one-cell layers across the axis of travel, each layer its own
+        /// The colour-gate palette. These are the racer palette colours verbatim (VisualTheme),
+        /// so a red pane is opened by the red cube and nobody else - the gate reads as "this one
+        /// is yours" at a glance.
+        /// </summary>
+        private static readonly Color[] GateColors =
+        {
+            new Color(0.95f, 0.16f, 0.16f), // red
+            new Color(0.98f, 0.45f, 0.10f), // orange
+            new Color(0.98f, 0.86f, 0.14f), // yellow
+            new Color(0.16f, 0.85f, 0.24f), // green
+            new Color(0.18f, 0.36f, 0.98f), // blue
+            new Color(0.20f, 0.90f, 0.92f), // cyan
+            new Color(0.85f, 0.20f, 0.90f), // magenta
+        };
+
+        /// <summary>
+        /// 'C': the rect slices into one-cell layers across the axis of travel, each layer its own
         /// breakable in the next rainbow colour - the layer-by-layer chew of the reference videos.
+        /// Each layer is COLOUR GATED: only the racer wearing that colour can chip it, and it
+        /// gives way in a couple of hits. The white 'N' panes are the opposite trade.
         /// </summary>
         private static void BuildRainbowGates(Transform parent, string[] grid, int columns, int rows,
             float cellW, float cellH, Settings settings)
         {
-            Color[] rainbow =
-            {
-                new Color(0.95f, 0.2f, 0.2f), new Color(1f, 0.6f, 0.1f), new Color(1f, 0.9f, 0.15f),
-                new Color(0.25f, 0.85f, 0.3f), new Color(0.2f, 0.6f, 1f), new Color(0.6f, 0.3f, 0.95f),
-                new Color(0.95f, 0.4f, 0.85f),
-            };
+            Color[] rainbow = GateColors;
 
             var holder = new GameObject("RainbowGates").transform;
             holder.SetParent(parent, false);
@@ -245,7 +307,11 @@ namespace CubeSim.EditorTools
             int index = 0;
             foreach (RectInt cells in MergeRects(grid, columns, rows, c => c == 'C'))
             {
-                bool sliceColumns = cells.width >= cells.height;
+                // Layers stack along the wall's THICKNESS, so each one is a full sheet across
+                // the path and the field chews through them one behind the other. Slicing the
+                // long way instead produced a ladder of little bands: break one and a racer
+                // slips through the hole while the rest are never touched.
+                bool sliceColumns = cells.width <= cells.height;
                 int layers = sliceColumns ? cells.width : cells.height;
 
                 for (int layer = 0; layer < layers; layer++)
@@ -254,9 +320,57 @@ namespace CubeSim.EditorTools
                         ? new RectInt(cells.xMin + layer, cells.yMin, 1, cells.height)
                         : new RectInt(cells.xMin, cells.yMin + layer, cells.width, 1);
 
-                    MakeBreakable(holder, $"Gate_{index:D2}_{layer:D2}",
+                    int colorIndex = layer % rainbow.Length;
+                    GameObject go = MakeBreakable(holder, $"Gate_{index:D2}_{layer:D2}",
                         CellRect(strip, columns, rows, cellW, cellH), settings,
-                        settings.RainbowLayerHits, rainbow[layer % rainbow.Length]);
+                        settings.RainbowLayerHits, rainbow[colorIndex]);
+
+                    // Colour gate: only the matching racer chips this pane, and only a couple of
+                    // hits are needed - the whole field has to sort itself out by colour.
+                    var gso = new SerializedObject(go.GetComponent<BreakableWall>());
+                    gso.FindProperty("condition").enumValueIndex = (int)BreakCondition.RequiredColorHitCount;
+                    gso.FindProperty("requiredColor").colorValue = rainbow[colorIndex];
+                    gso.FindProperty("colorTolerance").floatValue = 0.2f;
+                    gso.ApplyModifiedPropertiesWithoutUndo();
+
+                    // Stylized glass panel, one colour per layer - the full spectrum cycles.
+                    Material glass = GetGlassMaterial(rainbow[colorIndex], colorIndex);
+                    if (glass != null)
+                    {
+                        go.GetComponent<MeshRenderer>().sharedMaterial = glass;
+                        MarkCustomVisual(go);
+                    }
+                }
+
+                index++;
+            }
+        }
+
+        /// <summary>
+        /// 'N': neutral white glass. The opposite trade to a colour gate - anybody may hit it, so
+        /// it takes many hits to give way. A rect stays whole (no colour slicing) because there is
+        /// nothing to colour: it is one thick pane the whole field grinds down together.
+        /// </summary>
+        private static void BuildNeutralGlass(Transform parent, string[] grid, int columns, int rows,
+            float cellW, float cellH, Settings settings)
+        {
+            var holder = new GameObject("GlassPanes").transform;
+            holder.SetParent(parent, false);
+
+            var white = new Color(0.93f, 0.97f, 1f);
+
+            int index = 0;
+            foreach (RectInt cells in MergeRects(grid, columns, rows, c => c == 'N'))
+            {
+                GameObject go = MakeBreakable(holder, $"Pane_{index:D2}",
+                    CellRect(cells, columns, rows, cellW, cellH), settings,
+                    settings.NeutralGlassHits, white);
+
+                Material glass = GetGlassMaterial(white, 99);
+                if (glass != null)
+                {
+                    go.GetComponent<MeshRenderer>().sharedMaterial = glass;
+                    MarkCustomVisual(go);
                 }
 
                 index++;
@@ -289,6 +403,12 @@ namespace CubeSim.EditorTools
                 dso.FindProperty("phaseOffset").floatValue = (cells.xMin * 0.7f + cells.yMin * 0.45f) % 6.8f;
                 dso.ApplyModifiedPropertiesWithoutUndo();
 
+                // A plain amber slab: from the top-down camera a door mesh is just an edge, while a
+                // bright block that sinks into the floor is unmistakable.
+                go.GetComponent<MeshRenderer>().sharedMaterial =
+                    AsciiDeviceBuilder.GetPlateMaterialShared("CyclingDoorBlock", new Color(0.95f, 0.6f, 0.15f), new Color(1f, 0.55f, 0.1f) * 0.7f);
+                MarkCustomVisual(go);
+
                 index++;
             }
         }
@@ -315,28 +435,37 @@ namespace CubeSim.EditorTools
 
                 var rotor = rotorGo.AddComponent<RotorObstacle>();
                 var rso = new SerializedObject(rotor);
-                rso.FindProperty("degreesPerSecond").floatValue = index % 2 == 0 ? 24f : -24f;
+                // Fast enough to be a real threat: a racer at speed 10 cannot ignore a bar
+                // sweeping at 45 deg/s. The old 24 read as decoration.
+                rso.FindProperty("degreesPerSecond").floatValue = index % 2 == 0 ? 45f : -45f;
                 rso.FindProperty("phaseDegrees").floatValue = index * 45f;
+                rso.FindProperty("damagePerHit").floatValue = settings.RotorDamage;
                 rso.ApplyModifiedPropertiesWithoutUndo();
 
-                float span = Mathf.Min(rect.width, rect.height);
+                // The 'O' rect IS the sweep: mark the whole rotor room in the template and the
+                // bars fill it (minus a hair so they never scrape the room's walls).
+                float span = Mathf.Min(rect.width, rect.height) * 0.96f;
                 float thickness = Mathf.Min(cellW, cellH);
+
+                Material blade = null;   // rotors keep the wall look; the blade material is for saw blades
 
                 GameObject barA = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 barA.name = "BarA";
                 barA.transform.SetParent(rotorGo.transform, false);
                 barA.transform.localScale = new Vector3(span, settings.WallHeight, thickness);
+                if (blade != null) barA.GetComponent<MeshRenderer>().sharedMaterial = blade;
 
                 GameObject barB = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 barB.name = "BarB";
                 barB.transform.SetParent(rotorGo.transform, false);
                 barB.transform.localScale = new Vector3(thickness, settings.WallHeight, span);
+                if (blade != null) barB.GetComponent<MeshRenderer>().sharedMaterial = blade;
 
                 index++;
             }
         }
 
-        private static void MakeBreakable(Transform holder, string name, Rect footprint,
+        private static GameObject MakeBreakable(Transform holder, string name, Rect footprint,
             Settings settings, int hits, Color accent)
         {
             GameObject go = MakeWall(holder, name, footprint, settings.WallHeight);
@@ -355,6 +484,8 @@ namespace CubeSim.EditorTools
             bso.FindProperty("removalMode").enumValueIndex = (int)WallRemovalMode.ShrinkOut;
             bso.FindProperty("accentOverride").colorValue = accent;
             bso.ApplyModifiedPropertiesWithoutUndo();
+
+            return go;
         }
 
         private static void BuildRegions(Transform parent, string[] grid, int columns, int rows,
@@ -364,12 +495,39 @@ namespace CubeSim.EditorTools
             holder.SetParent(parent, false);
 
             foreach (var (marker, name) in new[]
-                     { ('L', "SpawnArea_Left"), ('R', "SpawnArea_Right") })
+                     { ('L', "SpawnArea_Left"), ('R', "SpawnArea_Right"),
+                       ('A', "SpawnArea_Top"), ('Z', "SpawnArea_Bottom") })
             {
                 foreach (RectInt cells in MergeRects(grid, columns, rows, c => c == marker))
                 {
                     Region<SpawnArea>(holder, name, CellRect(cells, columns, rows, cellW, cellH));
                 }
+            }
+
+            // ? Lucky Block crates: one-hit breakables that roll loot for whoever cracks them.
+            int crateIndex = 0;
+            foreach (RectInt cells in MergeRects(grid, columns, rows, c => c == '?'))
+            {
+                GameObject crate = MakeBreakable(holder, $"Crate_{crateIndex:D2}",
+                    CellRect(cells, columns, rows, cellW, cellH), settings, 1, new Color(1f, 0.8f, 0.15f, 1f));
+                crate.AddComponent<LootCrate>();
+                var cso = new SerializedObject(crate.GetComponent<BreakableWall>());
+                cso.FindProperty("removalMode").enumValueIndex = (int)WallRemovalMode.ShrinkOut;
+                cso.FindProperty("removalDuration").floatValue = 0.25f;
+                cso.ApplyModifiedPropertiesWithoutUndo();
+                var mark = new GameObject("Mark");
+                mark.transform.SetParent(crate.transform, false);
+                mark.transform.localPosition = new Vector3(0f, 0.51f, 0f);
+                mark.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                var text = mark.AddComponent<TextMesh>();
+                text.text = "?";
+                text.anchor = TextAnchor.MiddleCenter;
+                text.alignment = TextAlignment.Center;
+                text.fontSize = 64;
+                text.characterSize = 0.035f;
+                text.fontStyle = FontStyle.Bold;
+                text.color = new Color(0.1f, 0.05f, 0f);
+                crateIndex++;
             }
 
             foreach (RectInt cells in MergeRects(grid, columns, rows, c => c == 'G'))
@@ -414,7 +572,7 @@ namespace CubeSim.EditorTools
         /// consecutive rows become one rect. Columns and bars come out as single wall objects, which
         /// is what keeps an authored map a handful of meaningful masses instead of cell confetti.
         /// </summary>
-        private static List<RectInt> MergeRects(string[] grid, int columns, int rows,
+        internal static List<RectInt> MergeRects(string[] grid, int columns, int rows,
             System.Func<char, bool> match)
         {
             var open = new List<RectInt>();
@@ -459,7 +617,7 @@ namespace CubeSim.EditorTools
         }
 
         /// <summary>Grid cells to world XZ. Row 0 is the top of the map (+Z), like the file reads.</summary>
-        private static Rect CellRect(RectInt cells, int columns, int rows, float cellW, float cellH)
+        internal static Rect CellRect(RectInt cells, int columns, int rows, float cellW, float cellH)
         {
             float xMin = (cells.xMin - columns * 0.5f) * cellW;
             float xMax = (cells.xMax - columns * 0.5f) * cellW;
@@ -495,7 +653,7 @@ namespace CubeSim.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        private static GameObject MakeWall(Transform parent, string name, Rect footprint, float height)
+        internal static GameObject MakeWall(Transform parent, string name, Rect footprint, float height)
         {
             GameObject go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.name = name;
@@ -505,7 +663,181 @@ namespace CubeSim.EditorTools
             return go;
         }
 
-        private static GameObject Region<T>(Transform parent, string name, Rect footprint)
+        private const string BladeMaterialPath = "Assets/CubeSim/Visuals/Rotors/Blade.mat";
+
+        /// <summary>
+        /// A rotor bar is a blade now, and it has to read as one from above: dark steel with a hot
+        /// red edge glow, nothing like the quarry gray of a wall it can be mistaken for.
+        /// </summary>
+        private static Material GetBladeMaterial()
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(BladeMaterialPath);
+            if (material != null) return material;
+
+            Shader shader = Shader.Find("CleanRender/ToonLit") ??
+                            Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null) return null;
+
+            Directory.CreateDirectory("Assets/CubeSim/Visuals/Rotors");
+            material = new Material(shader) { name = "Blade" };
+            material.SetColor("_BaseColor", new Color(0.62f, 0.08f, 0.1f));
+            if (material.HasProperty("_ShadowColor")) material.SetColor("_ShadowColor", new Color(0.3f, 0.03f, 0.05f));
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.EnableKeyword("_EMISSION");
+                material.SetColor("_EmissionColor", new Color(0.9f, 0.05f, 0.05f) * 0.6f);
+            }
+
+            AssetDatabase.CreateAsset(material, BladeMaterialPath);
+            return material;
+        }
+
+        private const string RockModelPath = "Assets/KenneyDungeon/rocks.fbx";
+        private const string RockMaterialPath = "Assets/CubeSim/Visuals/Rocks/RockStone.mat";
+        private const string GlassFolder = "Assets/CubeSim/Visuals/Glass";
+
+        /// <summary>
+        /// Stone-gray toon material for the rock models. The pack's colormap paints these rocks
+        /// tomato red, which reads as a hazard from above - a flat quarry gray does not.
+        /// </summary>
+        private static Material GetRockMaterial()
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(RockMaterialPath);
+            if (material != null) return material;
+
+            Shader shader = Shader.Find("CleanRender/ToonLit") ??
+                            Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null) return null;
+
+            Directory.CreateDirectory("Assets/CubeSim/Visuals/Rocks");
+            material = new Material(shader) { name = "RockStone" };
+            material.SetColor("_BaseColor", new Color(0.56f, 0.54f, 0.5f));
+            if (material.HasProperty("_ShadowColor"))
+            {
+                material.SetColor("_ShadowColor", new Color(0.3f, 0.29f, 0.28f));
+            }
+
+            AssetDatabase.CreateAsset(material, RockMaterialPath);
+            return material;
+        }
+
+        /// <summary>
+        /// Swaps a breakable's plain box look for the Kenney rock model: the collider cube stays
+        /// (and keeps driving the shrink-out), its renderer goes dark, and the rock is fitted into
+        /// the cube's unit space so any footprint reads as a boulder of that size.
+        /// </summary>
+        private static void AddRockVisual(GameObject wallGo, int variant = 0)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RockModelPath);
+            Material material = GetRockMaterial();
+            if (prefab == null || material == null)
+            {
+                Debug.LogWarning("[CubeSim] Rock model or material missing; breakable keeps the box look.");
+                return;
+            }
+
+            wallGo.GetComponent<MeshRenderer>().enabled = false;
+
+            // Measure the model's native bounds BEFORE parenting - under the wall cube's
+            // non-uniform scale, world bounds lie about the model's own size.
+            var rock = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            rock.name = "RockVisual";
+            rock.transform.position = Vector3.zero;
+            rock.transform.rotation = Quaternion.identity;
+            rock.transform.localScale = Vector3.one;
+
+            var renderers = rock.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0)
+            {
+                Object.DestroyImmediate(rock);
+                return;
+            }
+
+            Bounds bounds = renderers[0].bounds;
+            foreach (Renderer renderer in renderers)
+            {
+                bounds.Encapsulate(renderer.bounds);
+                renderer.sharedMaterials =
+                    System.Linq.Enumerable.Repeat(material, renderer.sharedMaterials.Length).ToArray();
+            }
+
+            // Map the native bounds onto the parent cube's [-0.5, 0.5] space, so the rock exactly
+            // fills the wall's box no matter the footprint. Parent scale does the rest.
+            Vector3 size = Vector3.Max(bounds.size, Vector3.one * 0.001f);
+            // A hair over the footprint so neighbouring boulders overlap instead of showing seams;
+            // height stays exact. Mirroring by index breaks the copy-paste look of a rock field.
+            var fit = new Vector3(1.08f / size.x, 1f / size.y, 1.08f / size.z);
+            if ((variant & 1) != 0) fit.x = -fit.x;
+            if ((variant & 2) != 0) fit.z = -fit.z;
+
+            rock.transform.SetParent(wallGo.transform, false);
+            rock.transform.localRotation = Quaternion.identity;
+            rock.transform.localScale = fit;
+            rock.transform.localPosition = -Vector3.Scale(bounds.center, fit);
+
+            foreach (Collider stray in rock.GetComponentsInChildren<Collider>(true))
+            {
+                Object.DestroyImmediate(stray);
+            }
+        }
+
+        /// <summary>One glass material asset per gate colour, created on demand and reused.</summary>
+        private static Material GetGlassMaterial(Color color, int colorIndex)
+        {
+            Directory.CreateDirectory(GlassFolder);
+            string path = $"{GlassFolder}/Glass_{colorIndex:D2}.mat";
+
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                Shader shader = Shader.Find("CubeSim/Glass");
+                if (shader == null)
+                {
+                    Debug.LogWarning("[CubeSim] CubeSim/Glass shader missing; gate keeps the box look.");
+                    return null;
+                }
+
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, path);
+            }
+
+            material.SetColor("_TintColor", new Color(color.r, color.g, color.b, 0.5f));
+            material.SetColor("_FresnelColor", Color.Lerp(color, Color.white, 0.6f) * 1.6f);
+            material.SetFloat("_FresnelStrength", 1.1f);
+            material.SetFloat("_SpecStrength", 1.2f);
+            material.SetFloat("_RefractStrength", 0.14f);
+            EditorUtility.SetDirty(material);
+            return material;
+        }
+
+        private static void MarkRock(GameObject wallGo)
+        {
+            var breakable = wallGo.GetComponent<BreakableWall>();
+            if (breakable == null) return;
+            var bso = new SerializedObject(breakable);
+            bso.FindProperty("rock").boolValue = true;
+            bso.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        internal static void MarkCustomVisual(GameObject wallGo)
+        {
+            var wall = wallGo.GetComponent<ArenaWall>();
+            if (wall != null)
+            {
+                var wso = new SerializedObject(wall);
+                wso.FindProperty("keepBakedMaterial").boolValue = true;
+                wso.ApplyModifiedPropertiesWithoutUndo();
+            }
+
+            var breakable = wallGo.GetComponent<BreakableWall>();
+            if (breakable == null) return;
+
+            var so = new SerializedObject(breakable);
+            so.FindProperty("customVisual").boolValue = true;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        internal static GameObject Region<T>(Transform parent, string name, Rect footprint)
             where T : Component
         {
             var go = new GameObject(name);

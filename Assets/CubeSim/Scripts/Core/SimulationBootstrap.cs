@@ -42,8 +42,16 @@ namespace CubeSim.Core
         [Tooltip("Maps a simulation event to a sound. Purely cosmetic.")]
         [SerializeField] private AudioLibrary audioLibrary;
 
+        [Tooltip("Food models the pellet fields are drawn with. Purely cosmetic.")]
+        [SerializeField] private FoodVisualLibrary foodLibrary;
+
         [Tooltip("Live standings panel on the left edge of the screen.")]
         [SerializeField] private bool showLeaderboard = true;
+
+        private bool _portraitHud;
+
+        /// <summary>9:16 episodes lay the HUD across the top instead of down the left.</summary>
+        public void SetPortraitHud(bool value) => _portraitHud = value;
 
         [Header("Seed")]
         [SerializeField] private bool overrideSeed;
@@ -69,6 +77,9 @@ namespace CubeSim.Core
         private float _resultHoldTimer;
 
         public SimulationRunner Runner => _runner;
+
+        /// <summary>The rule line of the active config, for the round card.</summary>
+        public string RuleLine => Visuals.RuleText.Describe(_activeConfig);
         public SimulationConfig ActiveConfig => _activeConfig;
 
         /// <summary>
@@ -100,6 +111,8 @@ namespace CubeSim.Core
 
         public void SetAudioLibrary(AudioLibrary library) => audioLibrary = library;
 
+        public void SetFoodLibrary(FoodVisualLibrary library) => foodLibrary = library;
+
         private void Start()
         {
             if (buildOnStart) Build();
@@ -111,6 +124,8 @@ namespace CubeSim.Core
         /// </summary>
         private void Update()
         {
+            ReframeIfAspectChanged();
+            _bombVisual?.Tick(_runner != null && _runner.Bomb != null ? _runner.Bomb.FuseRemaining : 0f, Time.deltaTime);
             _vfx?.Tick(Time.deltaTime);
             _audio?.Tick(Time.deltaTime, _runner?.AliveCount ?? 0);
             _popups?.Tick(Time.deltaTime);
@@ -182,15 +197,17 @@ namespace CubeSim.Core
 
             var goals = new GoalSystem(arena.GoalAreas);
             var breakableWalls = new BreakableWallSystem(arena, _materials, _activeConfig.visuals);
-            var food = new FoodSystem(arena, _materials, _activeConfig.simulation.groundY, _sceneRoot);
+            var food = new FoodSystem(arena, _materials, _activeConfig.simulation.groundY, _sceneRoot,
+                foodLibrary);
             var obstacles = new MovingObstacleSystem(arena);
+            var devices = new ArenaDeviceSystem(arena);
 
             // Colliders created this frame are not in the physics scene until a sync. Without this,
             // the first queries of the episode see every wall still sitting at the origin.
             Physics.SyncTransforms();
 
             _runner = new SimulationRunner(_activeConfig, arena, pressure, combat, goals,
-                breakableWalls, racers, food, obstacles);
+                breakableWalls, racers, food, obstacles, devices);
             _resultLogged = false;
 
             _vfx = new VfxSystem(vfxLibrary, _activeConfig.simulation.groundY, _sceneRoot);
@@ -198,6 +215,8 @@ namespace CubeSim.Core
             _audio = new SimAudioSystem(audioLibrary, _sceneRoot);
             _audio.Bind(racers);
             SubscribePresentation(combat, goals, breakableWalls);
+            SubscribeDevices(devices);
+            BuildModes(random, arena, combat, breakableWalls, racers);
 
             // Eating is small sparkle + the eat sfx + a melody note - grazing plays the song.
             food.OnEaten += (racer, position) =>
@@ -210,7 +229,10 @@ namespace CubeSim.Core
             if (showLeaderboard)
             {
                 if (_leaderboard == null) _leaderboard = LeaderboardOverlay.Create(transform);
-                _leaderboard.Bind(racers);
+                _leaderboard.Bind(racers, _portraitHud);
+                _leaderboard.SetRule(Visuals.RuleText.Describe(_activeConfig),
+                    () => Visuals.RuleText.Counter(_runner, _activeConfig),
+                    () => Visuals.RuleText.Urgent(_runner, _activeConfig));
             }
 
             FrameCamera(arena);
@@ -228,6 +250,63 @@ namespace CubeSim.Core
                           $"pressure={pressure.Describe()} " +
                           $"win={_activeConfig.endRules.winCondition}");
             }
+        }
+
+        /// <summary>
+        /// Device feedback: every pickup sparkles and pops, every cut bleeds, a gate falling is a
+        /// shatter. Cosmetic only, like everything else in here.
+        /// </summary>
+        private void SubscribeDevices(ArenaDeviceSystem devices)
+        {
+            if (devices == null || !devices.Any) return;
+
+            devices.OnCoin += (racer, position) =>
+            {
+                _vfx?.Play(VfxId.WeaponPickup, position, Vector3.forward, racer.Color);
+                _audio?.Play(SimSoundId.Coin);
+            };
+
+            devices.OnKey += (racer, position) =>
+            {
+                _vfx?.Play(VfxId.GoalReached, position, Vector3.forward, racer.Color);
+                _audio?.Play(SimSoundId.KeyPickup);
+            };
+
+            devices.OnGateOpened += id => _audio?.Play(SimSoundId.GateOpen);
+
+            devices.OnPotion += (racer, position) =>
+            {
+                _vfx?.Play(VfxId.WeaponDrop, position, Vector3.forward, racer.Color);
+                _audio?.Play(SimSoundId.Potion);
+            };
+
+            devices.OnBump += (racer, position) =>
+            {
+                _vfx?.Play(VfxId.ProjectileHitWall, position, racer.Direction);
+                _audio?.Play(SimSoundId.Bumper);
+            };
+
+            devices.OnTeleport += (racer, from, to) =>
+            {
+                _vfx?.Play(VfxId.MuzzleFlash, from, Vector3.forward, racer.Color);
+                _vfx?.Play(VfxId.MuzzleFlash, to, Vector3.forward, racer.Color);
+                _audio?.Play(SimSoundId.Teleport);
+            };
+
+            devices.OnSawCut += (racer, position) =>
+            {
+                _vfx?.Play(VfxId.MeleeHit, position, racer.Direction, racer.Color);
+                _audio?.Play(SimSoundId.SawCut);
+            };
+
+            devices.OnSpike += (racer, position) =>
+            {
+                _vfx?.Play(VfxId.MeleeHit, position, Vector3.forward, racer.Color);
+                _audio?.Play(SimSoundId.SpikeHit);
+            };
+
+            devices.OnCrusherSlam += position => _audio?.Play(SimSoundId.CrusherSlam);
+            devices.OnSpikeWarn += position => _audio?.Play(SimSoundId.SpikeWarn);
         }
 
         /// <summary>
@@ -256,10 +335,16 @@ namespace CubeSim.Core
                     vfx?.Play(VfxId.MeleeHit, contact, victim.Position - attacker.Position, attacker.Color);
 
                 combat.OnEquipped += (racer, weapon) =>
+                {
                     vfx?.Play(VfxId.WeaponPickup, racer.Position, racer.Direction, racer.Color);
+                    Visuals.ArmedOutline.Apply(racer);
+                };
 
                 combat.OnDropped += (racer, weapon, reason) =>
+                {
+                    Visuals.ArmedOutline.Remove(racer);
                     vfx?.Play(VfxId.WeaponDrop, racer.Position, racer.Direction, racer.Color);
+                };
 
                 if (combat.Projectiles != null)
                 {
@@ -290,6 +375,7 @@ namespace CubeSim.Core
                 {
                     vfx?.Play(cause == DeathCause.Crushed ? VfxId.CrushDeath : VfxId.RacerDeath,
                         victim.Position, victim.Direction, victim.Color);
+                    if (cause != DeathCause.Crushed) vfx?.Play(VfxId.BloodPool, victim.Position, victim.Direction);
                     audio?.Play(SimSoundId.RacerDeath);
                 };
             }
@@ -308,17 +394,17 @@ namespace CubeSim.Core
             {
                 // Breakable props are the one collision that speaks: a bright crack per hit and a
                 // shatter when they give way - the glass-style objects the viewer expects to hear.
-                walls.OnWallBroken += (id, racer) =>
+                walls.OnWallBroken += (wall, racer) =>
                 {
                     if (racer != null) vfx?.Play(VfxId.WallBreak, racer.Position, racer.Direction);
-                    audio?.Play(SimSoundId.WallBreak);
+                    audio?.Play(wall.IsRock ? SimSoundId.RockBreak : SimSoundId.WallBreak);
                 };
 
                 // In melody mode the door hit also performs the tune - the swarm bashing a counter
                 // down IS the accelerando. In BGM mode Melody is null and only the crack plays.
-                walls.OnWallHit += (id, racer, remaining) =>
+                walls.OnWallHit += (wall, racer, remaining) =>
                 {
-                    audio?.Play(SimSoundId.WallHit);
+                    audio?.Play(wall.IsRock ? SimSoundId.RockHit : SimSoundId.WallHit);
                     audio?.Melody?.PlayNextNote(0.45f);
                 };
             }
@@ -405,6 +491,7 @@ namespace CubeSim.Core
 
             // Weapon materials are remapped copies of pack materials; drop them with the episode.
             Combat.WeaponVisualFactory.ResetCache();
+            Visuals.ArmedOutline.Clear();
         }
 
         private void OnDestroy() => Teardown();
@@ -452,6 +539,95 @@ namespace CubeSim.Core
             _light.transform.rotation = Quaternion.Euler(theme.lightEuler);
         }
 
+        private Visuals.BombVisual _bombVisual;
+
+        /// <summary>
+        /// The round's extra rule set, chosen by config.mode.kind. Systems are pure and live in the
+        /// runner; this only creates them and hangs the sound and colour on their events.
+        /// </summary>
+        private void BuildModes(SimulationRandom random, ArenaRuntime arena, CombatSystem combat,
+            BreakableWallSystem walls, Racer[] racers)
+        {
+            ModeConfig mode = _activeConfig.mode;
+            _bombVisual = null;
+            switch (mode.kind)
+            {
+                case ModeKind.Infection:
+                {
+                    var infection = new Modes.InfectionSystem(mode, random);
+                    var sick = new Color(0.35f, 0.9f, 0.2f);
+                    infection.OnInfected += (victim, source) =>
+                    {
+                        victim.Visual?.SetColor(sick, _activeConfig.visuals.racerEmission, true);
+                        Visuals.ArmedOutline.Apply(victim, new Color(0.5f, 2.2f, 0.2f));
+                        _vfx?.Play(VfxId.MeleeHit, victim.Position, Vector3.up, sick);
+                        _audio?.Play(source == null ? SimSoundId.SpikeWarn : SimSoundId.SpikeHit);
+                    };
+                    infection.OnBitten += (victim, carrier) =>
+                    {
+                        _popups?.Show(victim.Position, new Color(0.5f, 1f, 0.3f));
+                        _vfx?.Play(VfxId.MeleeHit, victim.Position, victim.Position - carrier.Position, sick);
+                        _audio?.Play(SimSoundId.RacerHit);
+                    };
+                    _runner.AttachModes(infection, null, null);
+                    break;
+                }
+                case ModeKind.HotPotato:
+                {
+                    var bomb = new Modes.BombSystem(mode, random);
+                    _bombVisual = new Visuals.BombVisual(_sceneRoot);
+                    bomb.OnArmed += holder => { _bombVisual.Attach(holder); _audio?.Play(SimSoundId.KeyPickup); };
+                    bomb.OnPassed += (from, to) => { _bombVisual.Attach(to); _audio?.Play(SimSoundId.Bumper); };
+                    bomb.OnExploded += (holder, at) =>
+                    {
+                        _bombVisual.Detach();
+                        _vfx?.Play(VfxId.CrushDeath, at, Vector3.up, new Color(1f, 0.6f, 0.2f));
+                        _vfx?.Play(VfxId.WallBreak, at, Vector3.up, new Color(1f, 0.6f, 0.2f));
+                        _audio?.Play(SimSoundId.CrusherSlam);
+                    };
+                    _runner.AttachModes(null, bomb, null);
+                    break;
+                }
+                case ModeKind.LuckyBlock:
+                {
+                    var loot = new Modes.LootSystem(mode, random, combat, racers, walls, _runner.DamageDelegate);
+                    loot.OnLoot += (kind, breaker, at) =>
+                    {
+                        Color tint = breaker != null ? breaker.Color : Color.white;
+                        switch (kind)
+                        {
+                            case Modes.LootKind.Knife: _vfx?.Play(VfxId.WeaponDrop, at, Vector3.up, tint); _audio?.Play(SimSoundId.KeyPickup); break;
+                            case Modes.LootKind.Potion: _vfx?.Play(VfxId.GoalReached, at, Vector3.up, new Color(0.3f, 1f, 0.4f)); _audio?.Play(SimSoundId.Potion); break;
+                            case Modes.LootKind.Shield:
+                                _vfx?.Play(VfxId.GoalReached, at, Vector3.up, new Color(0.3f, 0.7f, 1f));
+                                if (breaker != null) Visuals.ArmedOutline.Apply(breaker, new Color(0.3f, 1.2f, 2.5f));
+                                _audio?.Play(SimSoundId.GateOpen);
+                                break;
+                            case Modes.LootKind.Boost: _vfx?.Play(VfxId.MeleeSlash, at, Vector3.up, new Color(1f, 0.9f, 0.2f)); _audio?.Play(SimSoundId.Bumper); break;
+                            case Modes.LootKind.Bomb: _vfx?.Play(VfxId.CrushDeath, at, Vector3.up, new Color(1f, 0.5f, 0.1f)); _audio?.Play(SimSoundId.CrusherSlam); break;
+                        }
+                    };
+                    _runner.OnShieldBlocked += (victim, attacker) =>
+                    {
+                        _vfx?.Play(VfxId.ProjectileHitWall, victim.Position, Vector3.up, new Color(0.3f, 0.7f, 1f));
+                        _audio?.Play(SimSoundId.WallHit);
+                        if (victim.Shield == 0) Visuals.ArmedOutline.Remove(victim);
+                    };
+                    _runner.AttachModes(null, null, null, loot);
+                    break;
+                }
+                case ModeKind.PaintWar:
+                {
+                    var paint = new Modes.PaintSystem(mode, arena, _sceneRoot, _activeConfig.simulation.groundY);
+                    _runner.AttachModes(null, null, paint);
+                    break;
+                }
+            }
+        }
+
+        private ArenaRuntime _framedArena;
+        private float _framedAspect;
+
         private void FrameCamera(ArenaRuntime arena)
         {
             Camera camera = targetCamera != null ? targetCamera : Camera.main;
@@ -463,6 +639,21 @@ namespace CubeSim.Core
 
             SimulationCamera.Frame(camera, _activeConfig.camera, arena.PlayableRect,
                 _activeConfig.simulation.groundY, _activeConfig.visuals.post);
+            _framedArena = arena;
+            _framedAspect = camera.aspect;
+        }
+
+        /// <summary>
+        /// The framing depends on the view's aspect, and the Game view can change size after the
+        /// round starts (the recorder resizes it, a portrait batch leaves it tall). Re-frame the
+        /// moment the aspect moves so a landscape court never renders as a postage stamp.
+        /// </summary>
+        private void ReframeIfAspectChanged()
+        {
+            if (_framedArena == null || _activeConfig == null) return;
+            Camera camera = targetCamera != null ? targetCamera : Camera.main;
+            if (camera == null || Mathf.Abs(camera.aspect - _framedAspect) < 0.01f) return;
+            FrameCamera(_framedArena);
         }
 
         /// <summary>Writes the active config to disk - handy when tuning by hand before automating.</summary>

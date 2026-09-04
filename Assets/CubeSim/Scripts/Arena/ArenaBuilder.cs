@@ -66,9 +66,22 @@ namespace CubeSim.Arena
                 foreach (Transform bar in rotor.transform)
                 {
                     bar.gameObject.layer = SimulationLayers.Wall;
+                    // A bar that was baked with its own look (the red blade) keeps it; only a
+                    // bare primitive falls back to the wall material.
                     var renderer = bar.GetComponent<MeshRenderer>();
-                    if (renderer != null) renderer.sharedMaterial = materials.Wall;
+                    if (renderer != null &&
+                        (renderer.sharedMaterial == null || renderer.sharedMaterial.name.StartsWith("Default")))
+                    {
+                        renderer.sharedMaterial = materials.Wall;
+                    }
                 }
+            }
+
+            // Crusher slabs move, so they are not ArenaWalls either - but racers must bounce off
+            // them, so they sit on the wall layer with whatever look the builder baked.
+            foreach (Crusher crusher in authored.GetComponentsInChildren<Crusher>(true))
+            {
+                crusher.gameObject.layer = SimulationLayers.Wall;
             }
 
             if (authored.FloorMode == AuthoredFloorMode.FullArena)

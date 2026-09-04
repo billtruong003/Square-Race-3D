@@ -35,6 +35,7 @@ namespace CubeSim.Core
 
         private readonly List<Pellet> _pellets = new List<Pellet>();
         private readonly float _groundY;
+        private readonly FoodVisualLibrary _foods;
 
         /// <summary>(racer, pellet position) - fired as it is eaten. Presentation hangs off this.</summary>
         public event Action<Racer, Vector3> OnEaten;
@@ -42,9 +43,11 @@ namespace CubeSim.Core
         public int PelletCount => _pellets.Count;
         public int EatenCount { get; private set; }
 
-        public FoodSystem(ArenaRuntime arena, MaterialLibrary materials, float groundY, Transform parent)
+        public FoodSystem(ArenaRuntime arena, MaterialLibrary materials, float groundY, Transform parent,
+            FoodVisualLibrary foods = null)
         {
             _groundY = groundY;
+            _foods = foods != null && foods.Entries.Count > 0 ? foods : null;
 
             List<FoodArea> areas = arena.FoodAreas;
             if (areas == null || areas.Count == 0) return;
@@ -68,11 +71,14 @@ namespace CubeSim.Core
                         var position = new Vector3(x, groundY, z);
                         if (arena.OverlapsWall(new Vector2(x, z), 0.4f)) continue;
 
-                        Color color = PelletColors[colorIndex++ % PelletColors.Length];
+                        int index = colorIndex++;
+                        Color color = PelletColors[index % PelletColors.Length];
                         _pellets.Add(new Pellet
                         {
                             Position = position,
-                            Visual = BuildPellet(position, color, materials, root)
+                            Visual = _foods != null
+                                ? BuildFoodModel(position, index, root)
+                                : BuildPellet(position, color, materials, root)
                         });
                     }
                 }
@@ -109,6 +115,41 @@ namespace CubeSim.Core
             }
         }
 
+        /// <summary>
+        /// A real piece of food from the library: model dealt by pellet index so a field reads as
+        /// a spread of fruit rather than twelve apples in a row, wearing the pack colormap on the
+        /// toon shader, sat on the floor, yawed per index for variety. All deterministic.
+        /// </summary>
+        private GameObject BuildFoodModel(Vector3 position, int index, Transform parent)
+        {
+            FoodVisualLibrary.Entry entry = _foods.Entries[index % _foods.Entries.Count];
+            if (entry.prefab == null) return BuildPellet(position, PelletColors[0], null, parent);
+
+            GameObject model = UnityEngine.Object.Instantiate(entry.prefab, parent);
+            model.name = "Food_" + entry.id;
+
+            foreach (Collider stray in model.GetComponentsInChildren<Collider>(true))
+            {
+                if (Application.isPlaying) UnityEngine.Object.Destroy(stray);
+                else UnityEngine.Object.DestroyImmediate(stray);
+            }
+
+            if (_foods.Material != null)
+            {
+                foreach (Renderer renderer in model.GetComponentsInChildren<Renderer>(true))
+                {
+                    var materials = new Material[renderer.sharedMaterials.Length];
+                    for (int i = 0; i < materials.Length; i++) materials[i] = _foods.Material;
+                    renderer.sharedMaterials = materials;
+                }
+            }
+
+            model.transform.localScale = Vector3.one * entry.scale;
+            model.transform.localPosition = position + new Vector3(0f, entry.restHeight, 0f);
+            model.transform.localRotation = Quaternion.Euler(0f, (index * 47) % 360, 0f);
+            return model;
+        }
+
         private GameObject BuildPellet(Vector3 position, Color color, MaterialLibrary materials,
             Transform parent)
         {
@@ -126,8 +167,11 @@ namespace CubeSim.Core
             pellet.transform.localPosition = position + new Vector3(0f, 0.42f, 0f);
             pellet.transform.localScale = Vector3.one * 0.85f;
 
-            pellet.GetComponent<MeshRenderer>().sharedMaterial =
-                materials.GetGoalMaterial("food_" + ColorUtility.ToHtmlStringRGB(color), color, 0.75f);
+            if (materials != null)
+            {
+                pellet.GetComponent<MeshRenderer>().sharedMaterial =
+                    materials.GetGoalMaterial("food_" + ColorUtility.ToHtmlStringRGB(color), color, 0.75f);
+            }
 
             return pellet;
         }
