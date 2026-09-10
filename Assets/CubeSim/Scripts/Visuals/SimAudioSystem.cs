@@ -47,6 +47,9 @@ namespace CubeSim.Visuals
         // BackgroundPool state: one source, a shuffled index bag, and the last-played track so a
         // reshuffle can never deal the same song twice in a row.
         private readonly AudioSource _bgm;
+
+        /// <summary>The most recently built audio system, so an offline capture can pick up its running BGM.</summary>
+        public static SimAudioSystem Latest { get; private set; }
         private readonly List<int> _bgmBag = new List<int>();
         private int _lastBgmIndex = -1;
 
@@ -72,6 +75,7 @@ namespace CubeSim.Visuals
             _root = new GameObject("Audio").transform;
             _root.SetParent(parent, false);
 
+            Latest = this;
             _voices = new AudioSource[Voices];
             for (int i = 0; i < Voices; i++)
             {
@@ -139,6 +143,14 @@ namespace CubeSim.Visuals
 
             _bgm.clip = pool[index];
             _bgm.Play();
+            OfflineAudioTrack.Active?.LogBgm(_bgm.clip, _bgm.volume);
+        }
+
+        /// <summary>Tells an offline track which BGM is already playing and how far in it is.</summary>
+        public void SeedOfflineTrack(OfflineAudioTrack track)
+        {
+            if (track == null || _bgm == null || _bgm.clip == null || !_bgm.isPlaying) return;
+            track.LogBgm(_bgm.clip, _bgm.volume, _bgm.time);
         }
 
         /// <summary>Hooks the per-racer state this system polls for bounce sounds.</summary>
@@ -175,6 +187,7 @@ namespace CubeSim.Visuals
 
             voice.pitch = Random.Range(entry.pitchMin, entry.pitchMax);
             voice.PlayOneShot(entry.clip, entry.volume);
+            OfflineAudioTrack.Active?.LogOneShot(entry.clip, entry.volume * voice.volume, voice.pitch);
             Played++;
         }
 

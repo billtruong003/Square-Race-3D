@@ -26,7 +26,7 @@ namespace CubeSim.EditorTools
         private const string PendingKey = "CubeSim.RecordPending";
 
         private static RecorderController _controller;
-        private static AudioCaptureTap _audioTap;
+        private static OfflineAudioTrack _audioTap;
         private static string _videoPath;
         private static double _finishedAt;
 
@@ -103,11 +103,15 @@ namespace CubeSim.EditorTools
 
             _controller = new RecorderController(settings);
             _controller.PrepareRecording();
+            // The Game view's mute toggle must not reach the offline mix.
+            EditorUtility.audioMasterMute = false;
+            Time.timeScale = 1f;
             _controller.StartRecording();
+            Debug.Log($"[CubeSim] Capture clock: captureFramerate={Time.captureFramerate} timeScale={Time.timeScale} fixedDt={Time.fixedDeltaTime:F4}");
             _finishedAt = 0;
 
             _videoPath = output + ".mp4";
-            _audioTap = AudioCaptureTap.Begin(output + ".wav");
+            _audioTap = OfflineAudioTrack.Begin(output + ".wav", 60);
 
             Debug.Log($"[CubeSim] Recording to {output}.mp4 (audio via listener tap)");
         }
@@ -217,7 +221,10 @@ namespace CubeSim.EditorTools
                 process.StandardError.ReadToEnd();
                 process.WaitForExit(120000);
 
-                if (process.ExitCode == 0 && File.Exists(merged) && new FileInfo(merged).Length > 0)
+                // A mux that shrank the file threw the video away (an empty WAV plus -shortest
+                // produced a 262-byte mp4 once). Keep the silent original in that case.
+                long originalBytes = new FileInfo(videoPath).Length;
+                if (process.ExitCode == 0 && File.Exists(merged) && new FileInfo(merged).Length > originalBytes / 2)
                 {
                     File.Delete(videoPath);
                     File.Move(merged, videoPath);
@@ -227,8 +234,9 @@ namespace CubeSim.EditorTools
                 }
                 else
                 {
-                    Debug.LogWarning($"[CubeSim] Mux failed (exit {process.ExitCode}); " +
-                                     $"audio left beside the video at {wavPath}");
+                    if (File.Exists(merged)) File.Delete(merged);
+                    Debug.LogWarning($"[CubeSim] Mux rejected (exit {process.ExitCode}, merged too small); " +
+                                     $"silent video kept, audio left beside it at {wavPath}");
                 }
             }
             catch (System.Exception e)
