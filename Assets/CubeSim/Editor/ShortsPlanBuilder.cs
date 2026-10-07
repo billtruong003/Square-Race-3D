@@ -25,7 +25,7 @@ namespace CubeSim.EditorTools
         public const string PrefabFolder = "Assets/CubeSim/Arenas/Shorts";
         public const string SceneFolder = "Assets/CubeSim/Scenes/Shorts";
 
-        private sealed class Tuning
+        public sealed class Tuning
         {
             public WinCondition Win;
             public float Duration;
@@ -46,7 +46,7 @@ namespace CubeSim.EditorTools
             public ModeKind Mode = ModeKind.None;
         }
 
-        private static Tuning TuningFor(string map)
+        public static Tuning TuningFor(string map)
         {
             string prefix = map.Substring(0, 2);
             switch (prefix)
@@ -98,7 +98,17 @@ namespace CubeSim.EditorTools
         }
 
         [MenuItem("CubeSim/Build Shorts (portrait, 1 map = 1 video)", priority = 7)]
-        public static void BuildAll()
+        public static void BuildAll() => Build(null, false);
+
+        [MenuItem("CubeSim/Build Shorts (scouted seeds)", priority = 8)]
+        public static void BuildAllScouted() => Build(null, true);
+
+        /// <summary>
+        /// Builds the portrait scenes whose map id passes <paramref name="include"/> (null = all).
+        /// With <paramref name="scout"/>, each map's seed is the best of a batch of headless test
+        /// runs (SeedScout) instead of a blind draw.
+        /// </summary>
+        public static void Build(System.Func<string, bool> include, bool scout)
         {
             var library = AssetDatabase.LoadAssetAtPath<AuthoredArenaLibrary>(SerpentineMapBuilder.LibraryPath);
             if (library == null)
@@ -129,6 +139,7 @@ namespace CubeSim.EditorTools
             {
                 string id = Path.GetFileNameWithoutExtension(template);       // V_RC13
                 string map = id.Substring(2);                                  // RC13
+                if (include != null && !include(map)) continue;
                 Tuning tune = TuningFor(map);
                 // The old top-down slab walled off goals that were not on the bottom edge, so those
                 // courts were parked. The walking-distance zone follows any route to any goal, so
@@ -167,7 +178,18 @@ namespace CubeSim.EditorTools
                 }
 
                 int seed = draw.Next(100000, 999999);
-                report.Append($"  S_{map}: {seed}\n");
+                if (scout)
+                {
+                    // The lab loads the arena from the library, so the fresh prefab must be in it.
+                    library.SetEntries(entries);
+                    SeedScout.Result best = SeedScout.Pick(id, tune, seed, 16);
+                    if (best != null) seed = best.Seed;
+                    report.Append($"  S_{map}: {seed}  {(best != null ? best.Summary : "scout failed")}\n");
+                }
+                else
+                {
+                    report.Append($"  S_{map}: {seed}\n");
+                }
 
                 director.SetRounds(new List<EpisodeDirector.RoundSpec>
                 {

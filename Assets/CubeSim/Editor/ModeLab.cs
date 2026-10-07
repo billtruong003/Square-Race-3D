@@ -48,7 +48,8 @@ namespace CubeSim.EditorTools
             public string Extra;
         }
 
-        public static List<RoundStat> Run(Spec spec, int firstSeed, int seeds, System.Func<SimulationRunner, string> extra = null)
+        public static List<RoundStat> Run(Spec spec, int firstSeed, int seeds, System.Func<SimulationRunner, string> extra = null,
+            System.Action<SimulationRunner> onStep = null, System.Action<SimulationRunner, RoundStat> onDone = null)
         {
             var bootstrap = Object.FindFirstObjectByType<SimulationBootstrap>();
             if (bootstrap == null) throw new System.InvalidOperationException("Open the episode scene first (needs a SimulationBootstrap).");
@@ -107,7 +108,11 @@ namespace CubeSim.EditorTools
 
                 float dt = 1f / 60f;
                 int maxSteps = Mathf.CeilToInt(spec.MaxDuration / dt) + 10;
-                for (int i = 0; i < maxSteps && !runner.Finished; i++) runner.Step(dt);
+                for (int i = 0; i < maxSteps && !runner.Finished; i++)
+                {
+                    runner.Step(dt);
+                    onStep?.Invoke(runner);
+                }
 
                 int deaths = 0;
                 for (int i = 0; i < runner.Racers.Length; i++) if (!runner.Racers[i].Alive) deaths++;
@@ -125,6 +130,7 @@ namespace CubeSim.EditorTools
                     Crush = runner.CrushDeaths,
                     Extra = extra != null ? extra(runner) : "",
                 });
+                onDone?.Invoke(runner, stats[stats.Count - 1]);
 
                 bootstrap.Teardown();
             }
