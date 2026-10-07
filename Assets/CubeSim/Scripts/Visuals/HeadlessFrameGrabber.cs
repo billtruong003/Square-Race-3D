@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using Debug = UnityEngine.Debug;
 
 namespace CubeSim.Visuals
@@ -29,6 +30,7 @@ namespace CubeSim.Visuals
         private Stream _pipe;
         private Camera _camera;
         private byte[] _buffer;
+        private bool _warnedNoCamera;
 
         private void Start()
         {
@@ -70,19 +72,31 @@ namespace CubeSim.Visuals
         {
             if (_pipe == null) return;
 
-            Camera cam = Camera.main;
-            if (cam == null) return;
+            // Camera.main can come back null in batch mode; take the tagged camera, else any camera.
+            Camera cam = _camera != null ? _camera : FindCamera();
+            if (cam == null)
+            {
+                if (!_warnedNoCamera) Debug.LogWarning("[CubeSim] Headless capture: no MainCamera yet.");
+                _warnedNoCamera = true;
+                return;
+            }
             if (cam != _camera)
             {
                 if (_camera != null) { _camera.targetTexture = null; _camera.enabled = true; }
                 _camera = cam;
                 _camera.enabled = false; // rendered manually below, exactly once per frame
+                BuildUiCamera(cam);
             }
 
-            AttachCanvases(cam);
+            AttachCanvases(_uiCamera != null ? _uiCamera : cam);
             Canvas.ForceUpdateCanvases();
             _camera.targetTexture = _target;
             _camera.Render();
+            if (_uiCamera != null && _composite != null)
+            {
+                _uiCamera.Render();
+                Graphics.Blit(_uiTarget, _target, _composite);
+            }
 
             RenderTexture previous = RenderTexture.active;
             RenderTexture.active = _target;
@@ -96,6 +110,8 @@ namespace CubeSim.Visuals
             {
                 _pipe.Write(_buffer, 0, _buffer.Length);
                 FramesWritten++;
+                if (FramesWritten % 300 == 0)
+                    Debug.Log($"[CubeSim] Headless capture: {FramesWritten} frames ({Time.realtimeSinceStartup:F0}s wall)");
             }
             catch (System.Exception e)
             {
@@ -103,6 +119,57 @@ namespace CubeSim.Visuals
                 Debug.LogError("[CubeSim] Headless capture pipe broke: " + e.Message);
                 _pipe = null;
             }
+        }
+
+        private Camera _uiCamera;
+        private RenderTexture _uiTarget;
+        private Material _composite;
+
+        /// <summary>
+        /// The HUD goes through its own overlay camera with post-processing off, stacked on the game
+        /// camera: drawn through the game camera, bloom and tonemapping dulled every colour and the
+        /// outline inked the text. It sits far below the court so it never sees the scene.
+        /// </summary>
+        private void BuildUiCamera(Camera baseCamera)
+        {
+            var go = new GameObject("HeadlessUiCamera");
+            go.transform.SetParent(transform, false);
+            go.transform.position = new Vector3(0f, -5000f, 0f);
+            _uiCamera = go.AddComponent<Camera>();
+            _uiCamera.orthographic = true;
+            _uiCamera.clearFlags = CameraClearFlags.Depth;
+            _uiCamera.nearClipPlane = 0.01f;
+            _uiCamera.farClipPlane = 10f;
+            _uiCamera.enabled = false;
+
+            // The HUD renders into its own transparent texture (no post-processing, no outline),
+            // then is composited over the finished game frame. Cameras that skip clearing still
+            // clear in URP, and a stacked overlay is not rendered by a manual Render of its base.
+            _uiCamera.clearFlags = CameraClearFlags.SolidColor;
+            _uiCamera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+            _uiCamera.allowHDR = false;
+            _uiCamera.allowMSAA = false;
+            var uiData = go.AddComponent<UniversalAdditionalCameraData>();
+            uiData.renderType = CameraRenderType.Base;
+            uiData.renderPostProcessing = false;
+            uiData.antialiasing = AntialiasingMode.None;
+            _uiTarget = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32) { name = "HeadlessHud" };
+            _uiCamera.targetTexture = _uiTarget;
+            Shader composite = Shader.Find("Hidden/CubeSim/UiComposite");
+            if (composite != null) _composite = new Material(composite);
+            else Debug.LogWarning("[CubeSim] UiComposite shader missing; HUD will not be captured.");
+        }
+
+        private static Camera FindCamera()
+        {
+            Camera any = null;
+            foreach (Camera c in FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (c.CompareTag("MainCamera")) return c;
+                if (any == null) any = c;
+            }
+
+            return any;
         }
 
         /// <summary>Overlay canvases never reach a render texture; camera-space ones do.</summary>
@@ -114,7 +181,7 @@ namespace CubeSim.Visuals
                 int order = canvas.sortingOrder;
                 canvas.renderMode = RenderMode.ScreenSpaceCamera;
                 canvas.worldCamera = cam;
-                canvas.planeDistance = cam.nearClipPlane + 0.05f + 0.001f * (100 - Mathf.Clamp(order, 0, 99));
+                canvas.planeDistance = 1f + 0.01f * (100 - Mathf.Clamp(order, 0, 99));
                 canvas.sortingOrder = order;
             }
         }

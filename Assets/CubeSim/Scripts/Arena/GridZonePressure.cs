@@ -82,6 +82,10 @@ namespace CubeSim.Arena
             }
 
             _enabled = config.enabled && ok;
+            _arena = arena;
+            _racerHalfExtent = racerHalfExtent;
+            // Only fights hold: a race pen opens on its own (doors), and racers dig through rock.
+            _holding = _enabled && _config.shape != ZoneShape.PathChase;
 
             var open = new List<int>(_grid.OpenCount);
             for (int i = 0; i < n; i++) if (_grid.IsOpen(i) && !float.IsPositiveInfinity(_closeAt[i])) open.Add(i);
@@ -151,7 +155,7 @@ namespace CubeSim.Arena
 
             float[] d = _grid.Distances;
             float max = _grid.MaxDistance;
-            float speed = Mathf.Max(0.05f, _config.speed);
+            float speed = SpeedFor(max - _config.keepNearGoal);
             for (int i = 0; i < d.Length; i++)
             {
                 if (!_grid.IsOpen(i) || d[i] >= PathField.Unreachable || d[i] <= _config.keepNearGoal) continue;
@@ -216,7 +220,7 @@ namespace CubeSim.Arena
             var jitter = new float[tileDist.Length];
             for (int i = 0; i < jitter.Length; i++) jitter[i] = random.NextFloat() * _config.tileJitter;
 
-            float speed = Mathf.Max(0.05f, _config.speed);
+            float speed = SpeedFor(max - _config.finalRadius);
             for (int i = 0; i < d.Length; i++)
             {
                 if (!_grid.IsOpen(i) || d[i] >= PathField.Unreachable) continue;
@@ -229,6 +233,11 @@ namespace CubeSim.Arena
 
             return true;
         }
+
+        private float SpeedFor(float distanceToClose) =>
+            _config.closeSeconds > 0f
+                ? Mathf.Max(0.05f, distanceToClose / _config.closeSeconds)
+                : Mathf.Max(0.05f, _config.speed);
 
         private int TileOf(int cell, float tile, int tileCols)
         {
@@ -282,10 +291,54 @@ namespace CubeSim.Arena
 
         // ---------------------------------------------------------------- runtime
 
+        // ---- hold while sealed: a battle zone must not start eating a pen nobody can leave yet
+        private ArenaRuntime _arena;
+        private float _racerHalfExtent;
+        private bool _holding;
+        private float _held;
+        private int _brokenSeen = -1;
+        private PathField _reach;
+        private const float MaxHoldSeconds = 60f;
+
+        /// <summary>True while the zone clock is paused for sealed pens.</summary>
+        public bool Holding => _holding;
+
+        /// <summary>
+        /// Pauses the zone clock while any cube still stands in floor it cannot walk out of (a team
+        /// pen behind an intact wall). Re-checked whenever a breakable falls; released for good once
+        /// every cube can reach the centre, or after a minute regardless.
+        /// </summary>
+        public void UpdateHold(Racers.Racer[] racers, int brokenWalls, float deltaTime)
+        {
+            if (!_holding) return;
+
+            if (brokenWalls != _brokenSeen || _reach == null)
+            {
+                _brokenSeen = brokenWalls;
+                Physics.SyncTransforms();
+                _reach = PathField.Build(_arena, _racerHalfExtent, _config.cellSize, false);
+                _reach.ComputeFrom(Centre);
+            }
+
+            bool sealedCube = false;
+            for (int i = 0; i < racers.Length && !sealedCube; i++)
+            {
+                if (racers[i].IsActive && _reach.Sample(racers[i].Position) >= PathField.Unreachable * 0.5f) sealedCube = true;
+            }
+
+            if (!sealedCube || _held >= MaxHoldSeconds)
+            {
+                _holding = false;
+                return;
+            }
+
+            _held += deltaTime;
+        }
+
         public override void Tick(float elapsedTime)
         {
             if (!_enabled) return;
-            _now = elapsedTime;
+            _now = elapsedTime - _held;
 
             while (_closedCursor < _order.Length && _closeAt[_order[_closedCursor]] <= _now)
             {

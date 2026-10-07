@@ -181,6 +181,10 @@ namespace CubeSim.Core
 
             // 1. Advance the pressure and the moving obstacles first, so the casts below see
             //    current geometry.
+            if (_pressure is GridZonePressure zone && zone.Holding)
+            {
+                zone.UpdateHold(_racers, _breakableWalls != null ? _breakableWalls.BrokenCount : 0, deltaTime);
+            }
             _pressure.Tick(ElapsedTime);
             _obstacles?.Step(ElapsedTime);
             _devices?.PreMove(ElapsedTime, deltaTime, _racers, _arena, _killByDevice);

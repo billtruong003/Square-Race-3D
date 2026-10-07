@@ -85,6 +85,27 @@ namespace CubeSim.EditorTools
             }
         }
 
+        /// <summary>The one round spec a Short runs; the seed scout tests exactly this spec.</summary>
+        public static EpisodeDirector.RoundSpec RoundFor(string id, Tuning tune, int seed) => new EpisodeDirector.RoundSpec
+        {
+            arenaId = id,
+            seed = seed,
+            winCondition = tune.Win,
+            maxDuration = tune.Duration,
+            maxHealth = tune.MaxHealth,
+            weaponCount = tune.Weapons,
+            racerCount = tune.Racers,
+            teamCount = tune.Teams,
+            pressureProfile = tune.Pressure,
+            pressureStartDelay = tune.PressureDelay,
+            pressureSpeed = tune.PressureSpeed,
+            pressureTargetInset = tune.InsetX,
+            pressureTargetInsetZ = tune.InsetZ,
+            portrait = true,
+            requiredFinishers = tune.Finishers,
+            modeKind = tune.Mode,
+        };
+
         /// <summary>True when every goal cell sits in the bottom quarter of the template. ('R' is a spawn.)</summary>
         private static bool GoalAtBottom(string templatePath)
         {
@@ -191,28 +212,7 @@ namespace CubeSim.EditorTools
                     report.Append($"  S_{map}: {seed}\n");
                 }
 
-                director.SetRounds(new List<EpisodeDirector.RoundSpec>
-                {
-                    new EpisodeDirector.RoundSpec
-                    {
-                        arenaId = id,
-                        seed = seed,
-                        winCondition = tune.Win,
-                        maxDuration = tune.Duration,
-                        maxHealth = tune.MaxHealth,
-                        weaponCount = tune.Weapons,
-                        racerCount = tune.Racers,
-                        teamCount = tune.Teams,
-                        pressureProfile = tune.Pressure,
-                        pressureStartDelay = tune.PressureDelay,
-                        pressureSpeed = tune.PressureSpeed,
-                        pressureTargetInset = tune.InsetX,
-                        pressureTargetInsetZ = tune.InsetZ,
-                        portrait = true,
-                        requiredFinishers = tune.Finishers,
-                        modeKind = tune.Mode,
-                    }
-                });
+                director.SetRounds(new List<EpisodeDirector.RoundSpec> { RoundFor(id, tune, seed) });
 
                 // Shorts pacing: a one-second title, a quick round card, the winner held long
                 // enough to read. The leaderboard becomes a strip across the top (portrait HUD).

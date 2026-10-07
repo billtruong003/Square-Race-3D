@@ -220,70 +220,8 @@ namespace CubeSim.Core
                 {
                     round.paletteIndices = new List<int>(_winnerSlots);
                 }
-                if (round.racerSpeed > 0f) config.racers.speed = round.racerSpeed;
-                if (round.floorColor.a > 0f) config.visuals.floorColor = round.floorColor;
-                if (round.wallColor.a > 0f) config.visuals.wallColor = round.wallColor;
-                config.arena.mode = ArenaMode.Authored;
-                config.arena.arenaId = round.arenaId;
-                config.endRules.winCondition = round.winCondition;
-                config.endRules.eliminateCount = round.eliminateCount;
-                config.endRules.loopOnEnd = false;
-                if (round.maxDuration > 0f) config.endRules.maxDuration = round.maxDuration;
-                if (round.requiredFinishers > 0) config.endRules.requiredFinishers = round.requiredFinishers;
-                config.mode.kind = round.modeKind;
-                if (!string.IsNullOrEmpty(round.ruleLabel)) config.mode.ruleLabel = round.ruleLabel;
-                if (round.paletteIndices != null && round.paletteIndices.Count > 0)
-                {
-                    config.racers.paletteIndices = new List<int>(round.paletteIndices);
-                    config.racers.count = round.paletteIndices.Count;
-                }
-
-                ApplyPressureProfile(config, round);
-
-                if (round.portrait)
-                {
-                    // A 9:16 frame has no room for a side column; the court fills the width.
-                    config.camera.leftReserve = 0f;
-                    // Reserve exactly what the HUD strip needs: 150 px top margin, one 44 px row
-                    // per three racers, the 76 px rule strip and a little air, on a 1920 px frame.
-                    int hudRacers = round.racerCount > 0 ? round.racerCount : Mathf.Max(1, config.racers.count);
-                    int hudLines = Mathf.CeilToInt(hudRacers / 3f);
-                    config.camera.topReserve = SimulationBootstrap.UsesRaceHud(config)
-                        // HUD C is one 150 px bar at the top; the banner and ticker sit over the court.
-                        ? (40f + 150f + 20f) / 1920f
-                        : Mathf.Clamp((150f + hudLines * 44f + 76f + 24f) / 1920f, 0.16f, 0.34f);
-                    config.camera.margin = 1.03f;
-                }
+                ShapeRoundConfig(config, round);
                 _bootstrap.SetPortraitHud(round.portrait);
-
-                // Format overrides: the same scene can host a sudden-death round, a weapon
-                // frenzy, or a team battle without a different base config.
-                if (round.maxHealth > 0f)
-                {
-                    config.racers.maxHealth = round.maxHealth;
-                }
-
-                if (round.weaponCount >= 0) config.weapons.count = round.weaponCount;
-                if (round.racerCount > 0) config.racers.count = round.racerCount;
-                else if (round.racerCount < 0) config.racers.count = 0;
-
-                if (round.teamCount > 0)
-                {
-                    int teamCount = Mathf.Min(round.teamCount, TeamColors.Length);
-                    config.racers.teams = new List<Racers.TeamDefinition>();
-                    for (int t = 0; t < teamCount; t++)
-                    {
-                        config.racers.teams.Add(new Racers.TeamDefinition(TeamColors[t].Item1, TeamColors[t].Item2));
-                    }
-
-                    // RoundRobin matches the spawn dealer (racer i -> area i % areas), so with two
-                    // teams and two pens every RED lands left and every BLUE lands right. Blocks
-                    // would scatter both teams across both pens.
-                    config.racers.teamAssignment = Racers.TeamAssignment.RoundRobin;
-                    config.racers.colorSource = Racers.RacerColorSource.Team;
-                    // A team war without this is just FFA in matching shirts.
-                    config.weapons.friendlyFire = false;
-                }
 
                 _bootstrap.RunConfig(config);
                 if (round.modeKind == ModeKind.Arena && _bootstrap.Runner != null)
@@ -412,6 +350,77 @@ namespace CubeSim.Core
         /// outright (a Collapse needs four sides, the scene ships two); Config only nudges what
         /// is already there, which keeps the older hand-tuned scenes behaving as before.
         /// </summary>
+        /// <summary>
+        /// Everything a round spec does to the config, in one place, so the seed scout can build the
+        /// exact config the recording will run - a seed scored on a different config is a different match.
+        /// </summary>
+        public static void ShapeRoundConfig(SimulationConfig config, RoundSpec round)
+        {
+            if (round.racerSpeed > 0f) config.racers.speed = round.racerSpeed;
+            if (round.floorColor.a > 0f) config.visuals.floorColor = round.floorColor;
+            if (round.wallColor.a > 0f) config.visuals.wallColor = round.wallColor;
+            config.arena.mode = ArenaMode.Authored;
+            config.arena.arenaId = round.arenaId;
+            config.endRules.winCondition = round.winCondition;
+            config.endRules.eliminateCount = round.eliminateCount;
+            config.endRules.loopOnEnd = false;
+            if (round.maxDuration > 0f) config.endRules.maxDuration = round.maxDuration;
+            if (round.requiredFinishers > 0) config.endRules.requiredFinishers = round.requiredFinishers;
+            config.mode.kind = round.modeKind;
+            if (!string.IsNullOrEmpty(round.ruleLabel)) config.mode.ruleLabel = round.ruleLabel;
+            if (round.paletteIndices != null && round.paletteIndices.Count > 0)
+            {
+                config.racers.paletteIndices = new List<int>(round.paletteIndices);
+                config.racers.count = round.paletteIndices.Count;
+            }
+
+            ApplyPressureProfile(config, round);
+
+            if (round.portrait)
+            {
+                // A 9:16 frame has no room for a side column; the court fills the width.
+                config.camera.leftReserve = 0f;
+                // Reserve exactly what the HUD strip needs: 150 px top margin, one 44 px row
+                // per three racers, the 76 px rule strip and a little air, on a 1920 px frame.
+                int hudRacers = round.racerCount > 0 ? round.racerCount : Mathf.Max(1, config.racers.count);
+                int hudLines = Mathf.CeilToInt(hudRacers / 3f);
+                config.camera.topReserve = SimulationBootstrap.UsesRaceHud(config)
+                    // HUD C is one 150 px bar at the top; the banner and ticker sit over the court.
+                    ? (40f + 150f + 20f) / 1920f
+                    : Mathf.Clamp((150f + hudLines * 44f + 76f + 24f) / 1920f, 0.16f, 0.34f);
+                config.camera.margin = 1.03f;
+            }
+
+            // Format overrides: the same scene can host a sudden-death round, a weapon
+            // frenzy, or a team battle without a different base config.
+            if (round.maxHealth > 0f)
+            {
+                config.racers.maxHealth = round.maxHealth;
+            }
+
+            if (round.weaponCount >= 0) config.weapons.count = round.weaponCount;
+            if (round.racerCount > 0) config.racers.count = round.racerCount;
+            else if (round.racerCount < 0) config.racers.count = 0;
+
+            if (round.teamCount > 0)
+            {
+                int teamCount = Mathf.Min(round.teamCount, TeamColors.Length);
+                config.racers.teams = new List<Racers.TeamDefinition>();
+                for (int t = 0; t < teamCount; t++)
+                {
+                    config.racers.teams.Add(new Racers.TeamDefinition(TeamColors[t].Item1, TeamColors[t].Item2));
+                }
+
+                // RoundRobin matches the spawn dealer (racer i -> area i % areas), so with two
+                // teams and two pens every RED lands left and every BLUE lands right. Blocks
+                // would scatter both teams across both pens.
+                config.racers.teamAssignment = Racers.TeamAssignment.RoundRobin;
+                config.racers.colorSource = Racers.RacerColorSource.Team;
+                // A team war without this is just FFA in matching shirts.
+                config.weapons.friendlyFire = false;
+            }
+        }
+
         /// <summary>Run old Chase/Collapse rounds as zones. Off restores the original slabs.</summary>
         public static bool LegacySlabsAsZones = true;
 

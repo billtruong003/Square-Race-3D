@@ -108,8 +108,9 @@ namespace CubeSim.Visuals
 
             if (_centreLabel != null)
             {
+                // Only the live count fits between START and GOAL; the rule itself is the title card's job.
                 string counter = _counter != null ? _counter() : "";
-                _centreLabel.text = string.IsNullOrEmpty(counter) ? _rule : $"{_rule}  ·  {counter}";
+                _centreLabel.text = string.IsNullOrEmpty(counter) ? "FIRST TO THE GOAL" : counter.ToUpperInvariant();
             }
         }
 
@@ -261,7 +262,7 @@ namespace CubeSim.Visuals
             // ---- progress bar panel
             _barPanel = Panel(canvasGo.transform, "Bar", new Color(0.08f, 0.09f, 0.11f, 0.92f));
             _centreLabel = Label(_barPanel, "Rule", _body, 26, new Color(1f, 0.82f, 0.29f), TextAnchor.UpperCenter);
-            Stretch(_centreLabel.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -12f), new Vector2(0f, 34f));
+            Stretch(_centreLabel.rectTransform, new Vector2(0.22f, 1f), new Vector2(0.78f, 1f), new Vector2(0f, -14f), new Vector2(0f, 34f));
             Text start = Label(_barPanel, "Start", _body, 24, Color.white, TextAnchor.UpperLeft);
             start.text = "START";
             Stretch(start.rectTransform, new Vector2(0f, 1f), new Vector2(0.3f, 1f), new Vector2(24f, -12f), new Vector2(0f, 34f));

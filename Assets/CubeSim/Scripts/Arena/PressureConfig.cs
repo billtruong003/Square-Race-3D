@@ -47,8 +47,12 @@ namespace CubeSim.Arena
         [Tooltip("Seconds before anything closes.")]
         public float startDelay = 6f;
 
-        [Tooltip("PathChase / Collapse: metres of walking distance the front eats per second.")]
+        [Tooltip("PathChase / Collapse: metres of walking distance the front eats per second. Ignored when closeSeconds > 0.")]
         public float speed = 1.2f;
+
+        [Tooltip("PathChase / Collapse: seconds (after the start delay) to close the whole course, whatever its length. " +
+                 "A fixed speed made long courses run for minutes; 0 = use speed.")]
+        public float closeSeconds = 40f;
 
         [Tooltip("PathChase: floor within this walking distance of the goal never closes.")]
         public float keepNearGoal = 5f;

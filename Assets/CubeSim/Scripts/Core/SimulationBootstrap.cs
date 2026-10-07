@@ -548,6 +548,16 @@ namespace CubeSim.Core
             _leaderboard?.Bind(null);
             _healthBars = null;
 
+            if (!Application.isPlaying)
+            {
+                // Edit-mode runs (the lab, the seed scout) must leave nothing behind: a HUD built
+                // here would be saved into the scene and show up twice in the recording.
+                if (_leaderboard != null) DestroyImmediate(_leaderboard.gameObject);
+                if (_raceHud != null) DestroyImmediate(_raceHud.gameObject);
+                _leaderboard = null;
+                _raceHud = null;
+            }
+
             if (_sceneRoot != null)
             {
                 // Destroy is deferred to end of frame, so the old arena's colliders would still be in

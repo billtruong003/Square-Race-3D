@@ -32,6 +32,12 @@ namespace CubeSim.EditorTools
             public float InsetX = 29f;
             public float InsetZ = 15f;
             public System.Action<SimulationConfig> Tweak;
+
+            /// <summary>
+            /// When set, the round spec is applied exactly as the EpisodeDirector applies it, instead
+            /// of the lab's own shaping - so a scouted seed reproduces the recorded match.
+            /// </summary>
+            public EpisodeDirector.RoundSpec Round;
         }
 
         public sealed class RoundStat
@@ -60,6 +66,23 @@ namespace CubeSim.EditorTools
                 int seed = firstSeed + s;
                 SimulationConfig config = bootstrap.ResolveConfigTemplate();
                 config.seed = seed;
+                if (spec.Round != null)
+                {
+                    // Undo whatever a previous lab run left on the cloned template, then shape the
+                    // config the director's way.
+                    config.mode = new ModeConfig();
+                    config.racers.teams = new List<TeamDefinition>();
+                    config.racers.colorSource = RacerColorSource.Palette;
+                    config.racers.paletteIndices = new List<int>();
+                    config.weapons.friendlyFire = true;
+                    config.endRules.eliminateCount = 0;
+                    spec.Round.seed = seed;
+                    EpisodeDirector.ShapeRoundConfig(config, spec.Round);
+                    config.seed = seed;
+                    config.endRules.maxDuration = Mathf.Min(config.endRules.maxDuration, spec.MaxDuration);
+                    goto Run;
+                }
+
                 config.arena.mode = CubeSim.Arena.ArenaMode.Authored;
                 config.arena.arenaId = spec.ArenaId;
                 config.endRules.winCondition = spec.Win;
@@ -102,6 +125,7 @@ namespace CubeSim.EditorTools
                 EpisodeDirector.ApplyPressureProfile(config, round);
                 spec.Tweak?.Invoke(config);
 
+                Run:
                 bootstrap.RunConfig(config);
                 bootstrap.Paused = true;
                 SimulationRunner runner = bootstrap.Runner;

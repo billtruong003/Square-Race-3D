@@ -69,6 +69,7 @@ namespace CubeSim.EditorTools
                 PressureSpeed = tune.PressureSpeed,
                 InsetX = tune.InsetX,
                 InsetZ = tune.InsetZ,
+                Round = ShortsPlanBuilder.RoundFor(arenaId, tune, baseSeed),
             };
 
             bool race = tune.Win == WinCondition.ReachGoal || tune.Win == WinCondition.TeamFinishers;

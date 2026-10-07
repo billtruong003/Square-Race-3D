@@ -49,7 +49,14 @@ namespace CubeSim.Arena
         }
 
         /// <summary>Rasterises the arena's walls for a racer of this half extent.</summary>
-        public static PathField Build(ArenaRuntime arena, float racerHalfExtent, float cellSize)
+        public static PathField Build(ArenaRuntime arena, float racerHalfExtent, float cellSize) =>
+            Build(arena, racerHalfExtent, cellSize, true);
+
+        /// <summary>
+        /// With <paramref name="breakablesPassable"/> off, intact breakables and closed doors count
+        /// as solid - the floor a cube can actually reach right now.
+        /// </summary>
+        public static PathField Build(ArenaRuntime arena, float racerHalfExtent, float cellSize, bool breakablesPassable)
         {
             var field = new PathField(arena.PlayableRect, Mathf.Max(0.2f, cellSize));
             float y = arena.GroundY + racerHalfExtent;
@@ -68,11 +75,15 @@ namespace CubeSim.Arena
                     bool solid = false, breakable = false;
                     for (int h = 0; h < count; h++)
                     {
-                        if (hits[h].GetComponentInParent<BreakableWall>() != null) breakable = true;
+                        // Breakables open when hit and doors cycle open: both are routes, at a cost.
+                        if (hits[h].GetComponentInParent<BreakableWall>() != null ||
+                            hits[h].GetComponentInParent<CyclingWall>() != null ||
+                            hits[h].GetComponentInParent<LockedGate>() != null) breakable = true;
                         else solid = true;
                         hits[h] = null;
                     }
 
+                    if (breakable && !breakablesPassable) solid = true;
                     field._open[i] = !solid;
                     field._breakable[i] = !solid && breakable;
                     if (!solid) field.OpenCount++;

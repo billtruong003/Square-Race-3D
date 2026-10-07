@@ -133,6 +133,9 @@ namespace CubeSim.EditorTools
                 return;
             }
 
+            // Silent machine: the video's audio is mixed offline from clip data, never from the speakers.
+            EditorUtility.audioMasterMute = true;
+            AudioListener.volume = 0f;
             Directory.CreateDirectory("Temp");
             File.WriteAllLines(QueueFile, raw.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0));
             Next();
@@ -214,6 +217,8 @@ namespace CubeSim.EditorTools
             _grabber.OutputPath = stem + "_silent.mp4";
             _videoPath = stem + ".mp4";
             Time.timeScale = 1f;
+            EditorUtility.audioMasterMute = true;
+            AudioListener.volume = 0f;
             _audio = OfflineAudioTrack.Begin(stem + ".wav", 60);
             _finishedAtFrame = -1;
         }
