@@ -117,6 +117,7 @@ namespace CubeSim.Core
 
         private void Start()
         {
+            LookSettings.ApplyToScene();
             if (buildOnStart) Build();
         }
 
