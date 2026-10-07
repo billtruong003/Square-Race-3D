@@ -26,6 +26,19 @@ namespace CubeSim.Visuals
         // camera it - not the albedo - is what most of the arena actually renders as.
         public Color shadowColor = new Color(0.19f, 0.19f, 0.22f, 1f);
 
+        [Header("Wall shape")]
+        [Tooltip("Draw each wall mass as one mesh with rounded corners and a chamfered top edge. " +
+                 "Visual only: the box colliders are unchanged. Off = the original plain boxes.")]
+        public bool wallBevel = true;
+
+        [Range(0f, 1f)] public float wallCornerRadius = 0.35f;
+        [Range(0f, 0.5f)] public float wallChamfer = 0.15f;
+
+        [Tooltip("Wall shadow tone as a fraction of the wall colour. The toon shader paints every " +
+                 "vertical face in its shadow colour; with the shared dark-theme shadow, pastel " +
+                 "arenas got a thick near-black band around every wall.")]
+        [Range(0f, 1f)] public float wallShadowFactor = 0.72f;
+
         public Color pressureColor = new Color(1f, 0.55f, 0.06f, 1f);
         [Range(0f, 8f)] public float pressureEmission = 1.0f;
 

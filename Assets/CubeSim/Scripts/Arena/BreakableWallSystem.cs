@@ -128,7 +128,9 @@ namespace CubeSim.Arena
 
                 // The big countdown on the block face is the format: the number IS the tension.
                 // Only multi-hit walls get one; a single-touch gate has nothing to count down.
-                if (entry.Target > 1) entry.Counter = BuildCounter(entry, arena.Root);
+                // Rock tiles are excluded: a mine of 2x2 boulders printed a grid of numbers over the
+                // whole field. Rocks show damage through their shake instead.
+                if (entry.Target > 1 && !breakable.IsRock) entry.Counter = BuildCounter(entry, arena.Root);
 
                 _entries.Add(entry);
                 _byCollider[collider] = entry;

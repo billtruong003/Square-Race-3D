@@ -59,6 +59,11 @@ namespace CubeSim.Arena
                 if (wall != null) wall.PrepareForPlay(materials.Wall);
             }
 
+            if (materials.Theme != null && materials.Theme.wallBevel)
+            {
+                BuildBevelledWalls(authored, materials, groundY, instance.transform);
+            }
+
             // Rotor bars are not ArenaWalls (they rotate, so the fill/resolve pipeline must not
             // touch them) but they still need the wall look and the wall layer to block racers.
             foreach (RotorObstacle rotor in authored.GetComponentsInChildren<RotorObstacle>(true))
@@ -174,6 +179,55 @@ namespace CubeSim.Arena
         }
 
         // ---------------------------------------------------------------- shared pieces
+
+        /// <summary>
+        /// Replaces the look (never the colliders) of every plain static wall with merged, rounded,
+        /// chamfered wall masses. Breakables, doors and walls with a baked look keep their own
+        /// renderers, since they animate or carry their own material.
+        /// </summary>
+        private static void BuildBevelledWalls(AuthoredArena authored, MaterialLibrary materials, float groundY,
+            Transform parent)
+        {
+            var rects = new List<Rect>();
+            var hidden = new List<MeshRenderer>();
+            for (int i = 0; i < authored.Walls.Count; i++)
+            {
+                ArenaWall wall = authored.Walls[i];
+                if (wall == null || !wall.gameObject.activeInHierarchy) continue;
+                if (wall.GetComponent<BreakableWall>() != null || wall.GetComponent<CyclingWall>() != null) continue;
+                if (wall.KeepsBakedMaterial) continue;
+
+                var renderer = wall.GetComponent<MeshRenderer>();
+                if (renderer == null || !renderer.enabled) continue;
+
+                rects.Add(wall.ResolvedFootprint);
+                hidden.Add(renderer);
+            }
+
+            if (rects.Count == 0) return;
+
+            VisualTheme theme = materials.Theme;
+            List<Mesh> meshes = WallMassMesher.Build(rects, groundY, authored.WallHeight,
+                theme.wallCornerRadius, theme.wallChamfer);
+            if (meshes.Count == 0) return;
+
+            var holder = new GameObject("WallMasses").transform;
+            holder.SetParent(parent, false);
+            for (int i = 0; i < meshes.Count; i++)
+            {
+                var go = new GameObject("WallMass_" + i.ToString("D2"));
+                go.transform.SetParent(holder, false);
+                // The mesh is built in world space; cancel any offset the holder inherited.
+                go.transform.position = Vector3.zero;
+                go.transform.rotation = Quaternion.identity;
+                go.transform.localScale = Vector3.one;
+                go.AddComponent<MeshFilter>().sharedMesh = meshes[i];
+                var mr = go.AddComponent<MeshRenderer>();
+                mr.sharedMaterial = materials.Wall;
+            }
+
+            for (int i = 0; i < hidden.Count; i++) hidden[i].enabled = false;
+        }
 
         private static void BuildFloor(Rect bounds, float thickness, MaterialLibrary materials,
             float groundY, Transform parent)

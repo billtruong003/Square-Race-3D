@@ -76,6 +76,7 @@ namespace CubeSim.Arena.Authored
         [SerializeField] private bool keepBakedMaterial = false;
 
         public void SetKeepBakedMaterial(bool value) => keepBakedMaterial = value;
+        public bool KeepsBakedMaterial => keepBakedMaterial;
 
         public void PrepareForPlay(Material material)
         {

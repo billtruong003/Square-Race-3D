@@ -320,7 +320,10 @@ namespace CubeSim.EditorTools
                         ? new RectInt(cells.xMin + layer, cells.yMin, 1, cells.height)
                         : new RectInt(cells.xMin, cells.yMin + layer, cells.width, 1);
 
-                    int colorIndex = layer % rainbow.Length;
+                    // Each gate starts two hues further along the spectrum, so a field of 2-thick
+                    // gates uses red/orange, yellow/green, blue/indigo... instead of red/orange
+                    // everywhere (which left only two cubes with anything to do).
+                    int colorIndex = (index * 2 + layer) % rainbow.Length;
                     GameObject go = MakeBreakable(holder, $"Gate_{index:D2}_{layer:D2}",
                         CellRect(strip, columns, rows, cellW, cellH), settings,
                         settings.RainbowLayerHits, rainbow[colorIndex]);

@@ -18,6 +18,8 @@ namespace CubeSim.Visuals
         private static readonly int EmissionToggleId = Shader.PropertyToID("_Emission");
 
         private readonly VisualTheme _theme;
+
+        public VisualTheme Theme => _theme;
         private readonly Shader _shader;
         private readonly List<Material> _owned = new List<Material>(8);
         private readonly Dictionary<string, Material> _zoneMaterials = new Dictionary<string, Material>();
@@ -46,6 +48,9 @@ namespace CubeSim.Visuals
             if (Floor.HasProperty("_Threshold")) Floor.SetFloat("_Threshold", 0.6f);
             if (Floor.HasProperty("_Smoothness")) Floor.SetFloat("_Smoothness", 0.15f);
             Wall = Create("CubeSim_Wall", theme.wallColor, Color.black, 0f);
+            Color wallShadow = theme.wallColor * theme.wallShadowFactor;
+            wallShadow.a = 1f;
+            Wall.SetColor(ShadowColorId, wallShadow);
             Pressure = Create("CubeSim_Pressure", theme.pressureColor, theme.pressureColor, theme.pressureEmission);
             Racer = Create("CubeSim_Racer", Color.white, Color.white, theme.racerEmission);
             // The trail's own shader: it lifts its depth toward the camera so the full-screen

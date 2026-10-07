@@ -13,21 +13,8 @@ namespace CubeSim.Visuals
     /// </summary>
     public sealed class EpisodeCardOverlay : MonoBehaviour
     {
-        private static readonly (string name, Color color)[] ColorNames =
-        {
-            ("RED", new Color(0.95f, 0.16f, 0.16f)),
-            ("GREEN", new Color(0.16f, 0.85f, 0.24f)),
-            ("BLUE", new Color(0.18f, 0.36f, 0.98f)),
-            ("YELLOW", new Color(0.98f, 0.86f, 0.14f)),
-            ("ORANGE", new Color(0.98f, 0.45f, 0.10f)),
-            ("MAGENTA", new Color(0.85f, 0.20f, 0.90f)),
-            ("CYAN", new Color(0.20f, 0.90f, 0.92f)),
-            ("VIOLET", new Color(0.55f, 0.22f, 0.95f)),
-            ("PINK", new Color(0.95f, 0.55f, 0.72f)),
-            ("LIME", new Color(0.72f, 0.95f, 0.30f)),
-            ("TEAL", new Color(0.10f, 0.90f, 0.70f)),
-            ("WHITE", new Color(0.95f, 0.95f, 0.95f)),
-        };
+        // Names come from the same table the leaderboard uses, so a podium can never call a cube
+        // something different from what the board has been calling it all round.
 
         private Font _font;
         private RectTransform _card;
@@ -127,24 +114,7 @@ namespace CubeSim.Visuals
         }
 
         /// <summary>Nearest palette name, so a winner can be shouted without racer name plumbing.</summary>
-        public static string NameOf(Color color)
-        {
-            string best = "COLOR";
-            float bestDistance = float.MaxValue;
-
-            foreach ((string name, Color reference) in ColorNames)
-            {
-                float distance = (color.r - reference.r) * (color.r - reference.r)
-                               + (color.g - reference.g) * (color.g - reference.g)
-                               + (color.b - reference.b) * (color.b - reference.b);
-                if (distance >= bestDistance) continue;
-
-                bestDistance = distance;
-                best = name;
-            }
-
-            return best;
-        }
+        public static string NameOf(Color color) => Racers.ColorNames.NameFor(color);
 
         // ---------------------------------------------------------------- internals
 

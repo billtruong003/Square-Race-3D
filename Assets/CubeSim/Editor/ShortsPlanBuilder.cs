@@ -65,7 +65,9 @@ namespace CubeSim.EditorTools
                     return new Tuning { Win = WinCondition.LastAlive, Duration = 300f, MaxHealth = 2f, Weapons = 1, SawDamage = 1f, Racers = 12,
                         Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 5f, PressureSpeed = 0.5f, InsetX = 16f, InsetZ = 33f };
                 case "TW":
-                    bool fourWay = map == "TW11" || map == "TW12" || map == "TW13";
+                    // TW16-18 also draw four sealed pens; they used to be played as two teams.
+                    bool fourWay = map == "TW11" || map == "TW12" || map == "TW13" ||
+                                   map == "TW16" || map == "TW17" || map == "TW18";
                     return new Tuning { Win = WinCondition.LastTeamAlive, Duration = 300f, MaxHealth = 2f, Weapons = 2,
                         Racers = 20, Teams = fourWay ? 4 : 2, BreakableHits = 40,
                         Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 8f, PressureSpeed = 0.45f, InsetX = 16f, InsetZ = 33f };
@@ -83,14 +85,14 @@ namespace CubeSim.EditorTools
             }
         }
 
-        /// <summary>True when every goal cell (G or R) sits in the bottom quarter of the template.</summary>
+        /// <summary>True when every goal cell sits in the bottom quarter of the template. ('R' is a spawn.)</summary>
         private static bool GoalAtBottom(string templatePath)
         {
             string[] rows = File.ReadAllLines(templatePath).Where(r => r.Trim().Length > 0).ToArray();
             int first = -1;
             for (int r = 0; r < rows.Length; r++)
             {
-                if (rows[r].IndexOf('G') >= 0 || rows[r].IndexOf('R') >= 0) { first = r; break; }
+                if (rows[r].IndexOf('G') >= 0) { first = r; break; }
             }
             return first >= 0 && first >= rows.Length * 3 / 4;
         }
@@ -128,10 +130,11 @@ namespace CubeSim.EditorTools
                 string id = Path.GetFileNameWithoutExtension(template);       // V_RC13
                 string map = id.Substring(2);                                  // RC13
                 Tuning tune = TuningFor(map);
-                // A top-down slab only makes sense when the goal is the bottom edge. Looping courts
-                // (goal in the middle, route doubles back upward) get parked pressure instead, or
-                // the slab walls the goal off and the round times out with everyone stuck below it.
-                if (tune.Win == WinCondition.ReachGoal && !GoalAtBottom(template))
+                // The old top-down slab walled off goals that were not on the bottom edge, so those
+                // courts were parked. The walking-distance zone follows any route to any goal, so
+                // only parks when the zone is switched off.
+                if (!EpisodeDirector.LegacySlabsAsZones &&
+                    tune.Win == WinCondition.ReachGoal && !GoalAtBottom(template))
                 {
                     tune.Pressure = EpisodeDirector.PressureProfile.Park;
                     tune.PressureDelay = 100000f;
