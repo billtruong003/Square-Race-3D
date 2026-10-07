@@ -117,6 +117,36 @@ namespace CubeSim.Racers
             racer.Direction = direction;
         }
 
+        /// <summary>
+        /// Moves a racer's position by an external push (belt drag, bumper kick) through the same
+        /// cast the mover uses, stopping a skin short of anything solid. Writing the position
+        /// directly would let the push bury the cube in a wall, and a cast that starts inside a
+        /// wall cannot see it - the next step would then sail straight through.
+        /// </summary>
+        public Vector3 Shove(Vector3 position, float halfExtent, Vector3 delta)
+        {
+            delta.y = 0f;
+            float distance = delta.magnitude;
+            if (distance <= PlanarMath.Epsilon) return position;
+
+            Vector3 direction = delta / distance;
+            float halfCast = Mathf.Max(0.001f, halfExtent - _skin);
+            if (Physics.BoxCast(position, new Vector3(halfCast, halfCast, halfCast), direction, out RaycastHit hit,
+                    Quaternion.identity, distance + _skin, _castMask, QueryTriggerInteraction.Ignore))
+            {
+                distance = Mathf.Max(0f, hit.distance - _skin);
+            }
+
+            return position + direction * distance;
+        }
+
+        /// <summary>True when nothing solid lies on the straight line between two plane points.</summary>
+        public bool HasClearPath(Vector3 from, Vector3 to)
+        {
+            from.y = to.y = _planeY + 0.25f;
+            return !Physics.Linecast(from, to, _wallMask, QueryTriggerInteraction.Ignore);
+        }
+
         /// <summary>True when a box of this half extent overlaps any static wall.</summary>
         public bool OverlapsWalls(Vector3 position, float halfExtent)
         {
@@ -141,7 +171,16 @@ namespace CubeSim.Racers
             bool moved = false;
             for (int i = 0; i < count; i++)
             {
-                Bounds b = OverlapBuffer[i].bounds;
+                Collider wall = OverlapBuffer[i];
+                if (IsRotated(wall.transform))
+                {
+                    // A spinning rotor bar: its world AABB is far bigger than the bar, so the
+                    // bounds shortcut below would fling the cube half a bar length away.
+                    if (PushOutOfRotated(ref position, halfExtent, wall)) moved = true;
+                    continue;
+                }
+
+                Bounds b = wall.bounds;
 
                 float dx = position.x - b.center.x;
                 float dz = position.z - b.center.z;
@@ -165,6 +204,37 @@ namespace CubeSim.Racers
             for (int i = 0; i < count; i++) OverlapBuffer[i] = null;
 
             return moved;
+        }
+
+        private static BoxCollider _probe;
+
+        private static bool IsRotated(Transform t)
+        {
+            float yaw = Mathf.Repeat(t.eulerAngles.y, 90f);
+            return yaw > 0.5f && yaw < 89.5f;
+        }
+
+        private bool PushOutOfRotated(ref Vector3 position, float halfExtent, Collider wall)
+        {
+            if (_probe == null)
+            {
+                // A hidden unit box that never sits on a cast layer; ComputePenetration takes the
+                // pose explicitly, so the probe itself never has to move.
+                var go = new GameObject("CubeSim_PenetrationProbe") { hideFlags = HideFlags.HideAndDontSave, layer = 2 };
+                _probe = go.AddComponent<BoxCollider>();
+            }
+
+            _probe.size = Vector3.one * (halfExtent * 2f);
+            if (!Physics.ComputePenetration(_probe, position, Quaternion.identity,
+                    wall, wall.transform.position, wall.transform.rotation, out Vector3 dir, out float depth))
+            {
+                return false;
+            }
+
+            dir.y = 0f;
+            if (dir.sqrMagnitude < 1e-8f) return false;
+            position += dir.normalized * (depth + _skin);
+            return true;
         }
     }
 }

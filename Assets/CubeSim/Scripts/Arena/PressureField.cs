@@ -29,6 +29,15 @@ namespace CubeSim.Arena
         /// <summary>Rough still-open rectangle, used to validate weapon drops and to report progress.</summary>
         public abstract Rect CurrentBounds(Rect arenaRect);
 
+        /// <summary>
+        /// True when the field has just closed over this point and the cube standing there is
+        /// swallowed rather than shoved. Only lethal zones ever say yes.
+        /// </summary>
+        public virtual bool Engulfs(Vector3 position) => false;
+
+        /// <summary>Walking distance to the goal, when the field knows it (PathChase zones).</summary>
+        public virtual PathField GoalField => null;
+
         /// <summary>0..1 progress through the whole squeeze, for readouts.</summary>
         public virtual float Progress => 0f;
 

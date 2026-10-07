@@ -191,7 +191,7 @@ namespace CubeSim.Racers
                     out Vector3 normal, out float penetration))
             {
                 if (!allowSweep) return false;
-                return ResolveCrossing(a, b, contactDistance);
+                return ResolveCrossing(a, b, contactDistance, solver);
             }
 
             MaxPenetration = Mathf.Max(MaxPenetration, penetration);
@@ -207,7 +207,7 @@ namespace CubeSim.Racers
         /// which is where the bounce belongs - resolving it at the end of the step would send both
         /// racers off from the wrong place.
         /// </summary>
-        private bool ResolveCrossing(Racer a, Racer b, float contactDistance)
+        private bool ResolveCrossing(Racer a, Racer b, float contactDistance, ConstraintSolver solver)
         {
             if (!RacerContactMath.TrySweep(a.PreviousPosition, a.Position, b.PreviousPosition,
                     b.Position, contactDistance, out float toi))
@@ -215,8 +215,16 @@ namespace CubeSim.Racers
                 return false;
             }
 
-            a.Position = RacerContactMath.Lerp(a.PreviousPosition, a.Position, toi);
-            b.Position = RacerContactMath.Lerp(b.PreviousPosition, b.Position, toi);
+            Vector3 rewindA = RacerContactMath.Lerp(a.PreviousPosition, a.Position, toi);
+            Vector3 rewindB = RacerContactMath.Lerp(b.PreviousPosition, b.Position, toi);
+
+            // The sweep assumes straight travel. A racer that bounced off a wall mid-step took a bent
+            // path, and the straight line can cut through the corner it bounced off - so a rewind
+            // that lands somewhere illegal is not a real contact point. Leave the pair alone.
+            if (!solver.IsLegal(rewindA, a.HalfExtent) || !solver.IsLegal(rewindB, b.HalfExtent)) return false;
+
+            a.Position = rewindA;
+            b.Position = rewindB;
 
             if (!RacerContactMath.TryOverlap(a.Position, b.Position, contactDistance,
                     out Vector3 normal, out float penetration))

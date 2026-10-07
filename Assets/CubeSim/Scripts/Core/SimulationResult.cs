@@ -37,6 +37,10 @@ namespace CubeSim.Core
         public float winnerHealth;
         public float winnerGoalTime = -1f;
 
+        /// <summary>The watchdog clock ended the round and the tiebreak named the winner. A seed that
+        /// does this is a bad take: the lab and the recorder should reject it.</summary>
+        public bool timedOut;
+
         public override string ToString()
         {
             switch (outcome)

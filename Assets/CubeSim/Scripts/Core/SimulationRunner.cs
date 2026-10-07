@@ -43,6 +43,9 @@ namespace CubeSim.Core
         public FoodSystem Food => _food;
         public BreakableWallSystem BreakableWalls => _breakableWalls;
         public ArenaDeviceSystem Devices => _devices;
+
+        /// <summary>Walking distance to the goal; null on maps without one. Drives race standings.</summary>
+        public PathField GoalField { get; set; }
         public int RacerCount => _racers.Length;
         public int AliveCount { get; private set; }
         public int FinishedCount => _goals?.Finishers.Count ?? 0;
@@ -98,6 +101,7 @@ namespace CubeSim.Core
             _food = food;
             _obstacles = obstacles;
             _devices = devices != null && devices.Any ? devices : null;
+            const float MaxSpeedFactor = 3f;
             _breakableWalls = breakableWalls;
             _config = config;
             _arena = arena;
@@ -115,6 +119,7 @@ namespace CubeSim.Core
 
             _solver = new ConstraintSolver(_mover, pressure, config.simulation.skinWidth,
                 config.simulation.groundY);
+            _devices?.UseMover(_mover);
 
             if (config.racers.racerCollisionEnabled &&
                 config.racers.racerCollision == RacerCollisionMode.Bounce && racers.Length > 1)
@@ -122,7 +127,9 @@ namespace CubeSim.Core
                 // A cell has to be wide enough that any pair which could have crossed during one step
                 // still lands in adjacent cells - otherwise the broadphase would hide exactly the
                 // fast approaches the swept test exists to catch.
-                float step = config.racers.speed * Mathf.Max(config.simulation.fixedTimeStep, 1f / 60f);
+                // Knockback and bumper boosts run well above cruise speed, so size for the fastest
+                // a cube can actually go, not the configured cruise.
+                float step = config.racers.speed * MaxSpeedFactor * Mathf.Max(config.simulation.fixedTimeStep, 1f / 60f);
                 float cell = Mathf.Max(config.racers.cubeSize * 2f, config.racers.cubeSize + step) + 0.1f;
 
                 _contactGrid = new RacerContactGrid(arena.PlayableRect, cell, racers.Length,
@@ -161,6 +168,10 @@ namespace CubeSim.Core
             _obstacles?.Step(ElapsedTime);
             _devices?.PreMove(ElapsedTime, deltaTime, _racers, _arena, _killByDevice);
 
+            // Auto-sync is off: without this, the casts below see every slab, door and crusher where
+            // it stood last step, the cube overlaps it, and the solver has to clamp it every frame.
+            Physics.SyncTransforms();
+
             // 2. Move every racer still in the race. Retired finishers hold their position.
             for (int i = 0; i < _racers.Length; i++)
             {
@@ -169,6 +180,7 @@ namespace CubeSim.Core
 
                 // Recorded before the move, so the contact pass can sweep the segment just travelled.
                 racer.PreviousPosition = racer.Position;
+                racer.StepStartHealth = racer.Health;
                 _mover.Step(racer, deltaTime, _breakableWalls);
             }
 
@@ -178,6 +190,17 @@ namespace CubeSim.Core
             //    pair can push somebody toward a wall, and step 4 is what guarantees nobody ends the
             //    step inside one.
             _contactGrid?.ResolveContacts(_racers, _racers.Length, _solver);
+
+            // 3b. A lethal zone swallows whoever stands on floor it just closed. Collected with the
+            //     crushes so a zone that takes everyone at once still leaves a winner.
+            if (_pressure.Enabled)
+            {
+                for (int i = 0; i < _racers.Length; i++)
+                {
+                    Racer racer = _racers[i];
+                    if (racer.IsActive && _pressure.Engulfs(racer.Position)) _crushed.Add(racer);
+                }
+            }
 
             // 4. Enforce the hard constraints. A racer that cannot be placed legally is crushed
             //    rather than shoved through a wall.
@@ -195,21 +218,36 @@ namespace CubeSim.Core
                     continue;
                 }
 
+                if (_crushed.Contains(racer)) continue;
+
                 if (_solver.Resolve(racer) == ConstraintOutcome.Crushed)
                 {
-                    Kill(racer, null, DeathCause.Crushed);
-
-                    // A fully closing arena makes every remaining racer illegal on the same step.
-                    // Stopping here leaves a survivor instead of collapsing the run into a draw.
-                    EvaluateEndConditions();
-                    if (Finished) break;
+                    _crushed.Add(racer);
                     continue;
                 }
+
+                if (GoalField != null) racer.GoalDistance = GoalField.Sample(racer.Position);
 
                 racer.PushToTransform();
                 racer.Visual?.SetMoving(true);
                 racer.Visual?.FaceDirection(racer.Direction, deltaTime);
                 racer.Visual?.SampleTrail(racer.Position, deltaTime);
+            }
+
+            // 4a. Crushes are applied together, after every racer was tested. Killing them in array
+            //     order used to hand a fully closing arena to whichever cube had the highest index.
+            if (_crushed.Count > 0)
+            {
+                if (_crushed.Count >= AliveCount - FinishedCount && IsSurvivalRule())
+                {
+                    // The squeeze would wipe the field: the best-placed of them is spared to win.
+                    Racer spared = PickBest(_crushed);
+                    _crushed.Remove(spared);
+                    spared.PushToTransform();
+                }
+
+                for (int i = 0; i < _crushed.Count; i++) Kill(_crushed[i], null, DeathCause.Crushed);
+                _crushed.Clear();
             }
 
             // 4b. Mode rules that ride on position and contact: infection seed, bomb fuse, paint.
@@ -312,6 +350,8 @@ namespace CubeSim.Core
         }
 
         private bool _deviceKill;
+        private readonly System.Collections.Generic.List<Racer> _crushed = new System.Collections.Generic.List<Racer>();
+        private readonly System.Collections.Generic.List<Racer> _scratch = new System.Collections.Generic.List<Racer>();
 
         private void Kill(Racer racer, Racer killer, DeathCause cause)
         {
@@ -347,14 +387,14 @@ namespace CubeSim.Core
             {
                 case WinCondition.LastAlive:
                     if (AliveCount == 1) { RecordWinner(FindLastAlive()); Finished = true; return; }
-                    if (AliveCount == 0) { Result.outcome = SimulationOutcome.Draw; Finished = true; return; }
+                    if (AliveCount == 0) { RecordWinner(PickBest(LastToFall())); Finished = true; return; }
                     break;
 
                 case WinCondition.LastTeamAlive:
-                    if (AliveCount == 0) { Result.outcome = SimulationOutcome.Draw; Finished = true; return; }
+                    if (AliveCount == 0) { RecordWinner(PickBest(LastToFall())); Finished = true; return; }
                     if (CountAliveTeams() <= 1)
                     {
-                        RecordWinner(FindTeamChampion());
+                        RecordWinner(FindTeamChampion(-1));
                         Finished = true;
                         return;
                     }
@@ -371,7 +411,7 @@ namespace CubeSim.Core
 
                 case WinCondition.LastClean:
                     if (AliveCount == 1) { RecordWinner(FindLastAlive()); Finished = true; return; }
-                    if (AliveCount == 0) { Result.outcome = SimulationOutcome.Draw; Finished = true; return; }
+                    if (AliveCount == 0) { RecordWinner(PickBest(LastToFall())); Finished = true; return; }
                     if (Infection != null && Infection.InfectedCount > 0)
                     {
                         int clean = Infection.CleanAlive(_racers);
@@ -394,9 +434,7 @@ namespace CubeSim.Core
                     }
                     if (AliveCount - FinishedCount <= 0)
                     {
-                        if (FinishedCount > 0) RecordWinner(_goals.Finishers[0]);
-                        Result.outcome = FinishedCount > 0 ? SimulationOutcome.GoalReached : SimulationOutcome.Draw;
-                        Finished = true;
+                        FinishOnCourse();
                         return;
                     }
                     break;
@@ -413,9 +451,7 @@ namespace CubeSim.Core
                         int quota = Mathf.Max(0, _config.endRules.eliminateCount - dead);
                         if (racing <= quota)
                         {
-                            if (FinishedCount > 0) RecordWinner(_goals.Finishers[0]);
-                            Result.outcome = FinishedCount > 0 ? SimulationOutcome.GoalReached : SimulationOutcome.Draw;
-                            Finished = true;
+                            FinishOnCourse();
                             return;
                         }
                         break;
@@ -433,9 +469,7 @@ namespace CubeSim.Core
                     int stillRacing = AliveCount - FinishedCount;
                     if (stillRacing <= 0 || FinishedCount + stillRacing < required)
                     {
-                        if (FinishedCount > 0) RecordWinner(_goals.Finishers[0]);
-                        Result.outcome = FinishedCount > 0 ? SimulationOutcome.GoalReached : SimulationOutcome.Draw;
-                        Finished = true;
+                        FinishOnCourse();
                         return;
                     }
 
@@ -447,8 +481,8 @@ namespace CubeSim.Core
             {
                 if (_config.endRules.winCondition == WinCondition.LastTeamAlive && AliveCount > 0)
                 {
-                    // Clock ran out mid-war: the team's best surviving cube takes it.
-                    RecordWinner(FindTeamChampion());
+                    // Clock ran out mid-war: the strongest team (survivors, then health) takes it.
+                    RecordWinner(FindTeamChampion(LeadingTeam()));
                 }
                 else if (_config.endRules.winCondition == WinCondition.MostCoins)
                 {
@@ -458,9 +492,13 @@ namespace CubeSim.Core
                 {
                     RecordWinner(FindTopScore());
                 }
-                else if (AliveCount == 1) { RecordWinner(FindLastAlive()); }
                 else if (FinishedCount > 0) { RecordWinner(_goals.Finishers[0]); Result.outcome = SimulationOutcome.GoalReached; }
-                else { Result.outcome = SimulationOutcome.TimeLimit; }
+                else
+                {
+                    // The watchdog is a safety net, never a result: whoever is best placed wins.
+                    RecordWinner(PickBest(AliveCount > 0 ? Living() : LastToFall()));
+                    Result.timedOut = true;
+                }
 
                 Finished = true;
             }
@@ -560,13 +598,14 @@ namespace CubeSim.Core
         /// The face of the winning team: its top killer, ties broken by health then by index -
         /// deterministic, so the same seed always crowns the same cube.
         /// </summary>
-        private Racer FindTeamChampion()
+        private Racer FindTeamChampion(int team)
         {
             Racer best = null;
             for (int i = 0; i < _racers.Length; i++)
             {
                 Racer racer = _racers[i];
                 if (!racer.Alive) continue;
+                if (team >= 0 && racer.Team != team) continue;
 
                 if (best == null ||
                     racer.Kills > best.Kills ||
@@ -577,6 +616,118 @@ namespace CubeSim.Core
             }
 
             return best;
+        }
+
+        /// <summary>Team with the most survivors, then the most total health, then the most kills.</summary>
+        private int LeadingTeam()
+        {
+            int bestTeam = -1, bestAlive = -1, bestKills = -1;
+            float bestHealth = -1f;
+            for (int t = 0; t < 31; t++)
+            {
+                int alive = 0, kills = 0;
+                float health = 0f;
+                bool any = false;
+                for (int i = 0; i < _racers.Length; i++)
+                {
+                    Racer r = _racers[i];
+                    if (r.Team != t) continue;
+                    any = true;
+                    kills += r.Kills;
+                    if (!r.Alive) continue;
+                    alive++;
+                    health += r.Health;
+                }
+
+                if (!any) continue;
+                bool better = alive > bestAlive ||
+                    (alive == bestAlive && health > bestHealth + 0.001f) ||
+                    (alive == bestAlive && Mathf.Abs(health - bestHealth) <= 0.001f && kills > bestKills);
+                if (!better) continue;
+                bestTeam = t; bestAlive = alive; bestHealth = health; bestKills = kills;
+            }
+
+            return bestTeam;
+        }
+
+        private bool IsSurvivalRule()
+        {
+            switch (_config.endRules.winCondition)
+            {
+                case WinCondition.LastAlive:
+                case WinCondition.LastTeamAlive:
+                case WinCondition.LastClean:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>A race that cannot go on: the first finisher if any, else the cube closest to the goal.</summary>
+        private void FinishOnCourse()
+        {
+            if (FinishedCount > 0)
+            {
+                RecordWinner(_goals.Finishers[0]);
+                Result.outcome = SimulationOutcome.GoalReached;
+            }
+            else
+            {
+                RecordWinner(PickBest(AliveCount > 0 ? Living() : LastToFall()));
+            }
+
+            Finished = true;
+        }
+
+        private System.Collections.Generic.List<Racer> Living()
+        {
+            _scratch.Clear();
+            for (int i = 0; i < _racers.Length; i++) if (_racers[i].Alive) _scratch.Add(_racers[i]);
+            return _scratch;
+        }
+
+        /// <summary>The racers that died at the latest death time - the ones that fell together last.</summary>
+        private System.Collections.Generic.List<Racer> LastToFall()
+        {
+            _scratch.Clear();
+            float latest = float.MinValue;
+            for (int i = 0; i < _racers.Length; i++) latest = Mathf.Max(latest, _racers[i].DeathTime);
+            for (int i = 0; i < _racers.Length; i++)
+            {
+                if (Mathf.Abs(_racers[i].DeathTime - latest) < 1e-4f) _scratch.Add(_racers[i]);
+            }
+
+            return _scratch;
+        }
+
+        /// <summary>
+        /// The one tiebreak every rule uses, so no round ends without a name on the card: alive beats
+        /// dead, then the later death, then closer to the goal, then healthier (at the start of the
+        /// step for the dead), then more kills, then a seeded slot order - never a bare index.
+        /// </summary>
+        private Racer PickBest(System.Collections.Generic.List<Racer> candidates)
+        {
+            Racer best = null;
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                if (best == null || Beats(candidates[i], best)) best = candidates[i];
+            }
+
+            return best;
+        }
+
+        private bool Beats(Racer a, Racer b)
+        {
+            if (a.Alive != b.Alive) return a.Alive;
+            if (!a.Alive && Mathf.Abs(a.DeathTime - b.DeathTime) >= 1e-4f) return a.DeathTime > b.DeathTime;
+            if (Mathf.Abs(a.GoalDistance - b.GoalDistance) > 0.01f) return a.GoalDistance < b.GoalDistance;
+            float ha = a.Alive ? a.Health : a.StepStartHealth;
+            float hb = b.Alive ? b.Health : b.StepStartHealth;
+            if (Mathf.Abs(ha - hb) > 0.001f) return ha > hb;
+            if (a.Kills != b.Kills) return a.Kills > b.Kills;
+            int n = Mathf.Max(1, _racers.Length);
+            int salt = (int)((uint)_config.seed % (uint)n);
+            return (a.Index + salt) % n < (b.Index + salt) % n;
         }
 
         private void RecordWinner(Racer racer)

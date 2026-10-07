@@ -39,6 +39,7 @@ namespace CubeSim.EditorTools
             public int Seed;
             public float Seconds;
             public SimulationOutcome Outcome;
+            public bool TimedOut;
             public string Winner;
             public int Alive;
             public int Deaths;
@@ -116,6 +117,7 @@ namespace CubeSim.EditorTools
                     Seed = seed,
                     Seconds = runner.ElapsedTime,
                     Outcome = runner.Result.outcome,
+                    TimedOut = runner.Result.timedOut,
                     Winner = runner.Result.winnerName,
                     Alive = runner.AliveCount,
                     Deaths = deaths,
@@ -140,7 +142,7 @@ namespace CubeSim.EditorTools
             foreach (RoundStat st in stats)
             {
                 seconds.Add(st.Seconds);
-                if (st.Outcome == SimulationOutcome.TimeLimit) timeouts++;
+                if (st.TimedOut || st.Outcome == SimulationOutcome.TimeLimit) timeouts++;
                 if (st.Outcome == SimulationOutcome.Draw) draws++;
                 string w = string.IsNullOrEmpty(st.Winner) ? "-" : st.Winner;
                 winners[w] = winners.TryGetValue(w, out int n) ? n + 1 : 1;

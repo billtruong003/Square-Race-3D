@@ -256,9 +256,11 @@ namespace CubeSim.Visuals
                 if (a.Coins != b.Coins) return b.Coins.CompareTo(a.Coins);
                 if (a.Kills != b.Kills) return b.Kills.CompareTo(a.Kills);
                 if (a.FoodEaten != b.FoodEaten) return b.FoodEaten.CompareTo(a.FoodEaten);
-                if (!Mathf.Approximately(a.DistanceTravelled, b.DistanceTravelled))
+                // Races rank by walking distance left to the goal. Everyone cruises at the same
+                // speed, so distance travelled said nothing about who was actually ahead.
+                if (Mathf.Abs(a.GoalDistance - b.GoalDistance) > 0.05f)
                 {
-                    return b.DistanceTravelled.CompareTo(a.DistanceTravelled);
+                    return a.GoalDistance.CompareTo(b.GoalDistance);
                 }
 
                 return a.Index.CompareTo(b.Index);

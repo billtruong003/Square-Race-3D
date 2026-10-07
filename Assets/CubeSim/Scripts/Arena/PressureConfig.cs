@@ -18,7 +18,67 @@ namespace CubeSim.Arena
         LinearSlabs = 0,
 
         /// <summary>Follows the PressureTrack the authored map declares.</summary>
-        AuthoredTrack = 1
+        AuthoredTrack = 1,
+
+        /// <summary>
+        /// Closes the floor cell by cell along walking distance, so it follows corridors and never
+        /// cuts through a wall. See ZoneConfig for the three shapes.
+        /// </summary>
+        Zone = 2
+    }
+
+    public enum ZoneShape
+    {
+        /// <summary>Race: eats the course from the far end toward the goal; the goal is always last.</summary>
+        PathChase = 0,
+
+        /// <summary>Battle: a ring around a seeded open-floor centre, shrinking in announced phases.</summary>
+        Circle = 1,
+
+        /// <summary>Battle: floor tiles fall away in waves toward a final platform.</summary>
+        Collapse = 2
+    }
+
+    [Serializable]
+    public class ZoneConfig
+    {
+        public ZoneShape shape = ZoneShape.PathChase;
+
+        [Tooltip("Seconds before anything closes.")]
+        public float startDelay = 6f;
+
+        [Tooltip("PathChase / Collapse: metres of walking distance the front eats per second.")]
+        public float speed = 1.2f;
+
+        [Tooltip("PathChase: floor within this walking distance of the goal never closes.")]
+        public float keepNearGoal = 5f;
+
+        [Tooltip("Circle / Collapse: walking radius around the centre that never closes.")]
+        public float finalRadius = 3.5f;
+
+        [Tooltip("Circle: number of shrink phases.")]
+        public int phases = 4;
+
+        [Tooltip("Circle: seconds each phase holds (and announces the next ring) before shrinking.")]
+        public float holdSeconds = 6f;
+
+        [Tooltip("Circle: seconds each shrink takes.")]
+        public float shrinkSeconds = 5f;
+
+        [Tooltip("Collapse: tile edge in metres.")]
+        public float tileSize = 2f;
+
+        [Tooltip("Collapse: seeded per-tile delay spread in seconds, for a ragged edge and islands.")]
+        public float tileJitter = 1.5f;
+
+        [Tooltip("Seconds of warning before a cell closes (Circle warns for the whole hold).")]
+        public float warnSeconds = 2.5f;
+
+        [Tooltip("A cube a closing cell swallows dies. Off: the zone only shoves, and only a cube with nowhere to go is crushed.")]
+        public bool lethal = true;
+
+        [Tooltip("Path grid resolution in metres.")]
+        public float cellSize = 0.5f;
     }
 
     /// <summary>
@@ -44,6 +104,8 @@ namespace CubeSim.Arena
 
         [Tooltip("Seconds before the route starts. Negative = use the value on the PressureTrack.")]
         public float trackStartDelay = -1f;
+
+        public ZoneConfig zone = new ZoneConfig();
 
         public List<PressureSlabConfig> slabs = new List<PressureSlabConfig>
         {

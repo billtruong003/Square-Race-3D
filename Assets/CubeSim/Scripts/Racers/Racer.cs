@@ -83,6 +83,15 @@ namespace CubeSim.Racers
         public float DistanceTravelled;
         public int Kills;
 
+        /// <summary>Health when the current step began: the tiebreak for cubes that die on the same step.</summary>
+        public float StepStartHealth;
+
+        /// <summary>
+        /// Walking distance left to the goal, from the arena's path field. MaxValue when the map has
+        /// no goal or the field is not built, which keeps it neutral in every comparison.
+        /// </summary>
+        public float GoalDistance = float.MaxValue;
+
         /// <summary>How many times this racer has picked a weapon up. Proof of circulation.</summary>
         public int TimesArmed;
 

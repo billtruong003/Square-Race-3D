@@ -80,7 +80,7 @@ namespace CubeSim.Racers
                 }
             }
 
-            if (TryFindNearestLegal(position, racer.HalfExtent, out Vector3 rescued))
+            if (TryFindNearestLegal(position, racer.PreviousPosition, racer.HalfExtent, out Vector3 rescued))
             {
                 rescued.y = _planeY + racer.HalfExtent;
                 racer.Position = rescued;
@@ -93,8 +93,12 @@ namespace CubeSim.Racers
             return ConstraintOutcome.Crushed;
         }
 
-        /// <summary>Widening ring search for a legal spot near the conflicted position.</summary>
-        private bool TryFindNearestLegal(Vector3 origin, float halfExtent, out Vector3 result)
+        /// <summary>
+        /// Widening ring search for a legal spot near the conflicted position. A spot only counts if
+        /// the racer could have reached it from where it legally stood last step - otherwise a cube
+        /// pinned against a thin wall or a glass gate would be rescued onto the far side of it.
+        /// </summary>
+        private bool TryFindNearestLegal(Vector3 origin, Vector3 lastLegal, float halfExtent, out Vector3 result)
         {
             float stepSize = Mathf.Max(0.12f, halfExtent * 0.5f);
 
@@ -110,7 +114,7 @@ namespace CubeSim.Racers
                         origin.y,
                         origin.z + Mathf.Sin(angle) * radius);
 
-                    if (IsLegal(candidate, halfExtent))
+                    if (IsLegal(candidate, halfExtent) && _mover.HasClearPath(lastLegal, candidate))
                     {
                         result = candidate;
                         return true;

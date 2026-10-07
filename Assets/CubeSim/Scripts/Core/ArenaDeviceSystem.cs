@@ -92,6 +92,21 @@ namespace CubeSim.Core
         private static readonly int AngleId = Shader.PropertyToID("_Angle");
         private static readonly int MetresPerRepeatId = Shader.PropertyToID("_MetresPerRepeat");
         private readonly Dictionary<int, float> _lastTeleport = new Dictionary<int, float>();
+        // Racer index -> the pad it arrived on. It must step off that pad before any pad fires again,
+        // otherwise a slow or staggered cube ping-pongs between the twins forever.
+        private readonly Dictionary<int, Teleporter> _arrivedOn = new Dictionary<int, Teleporter>();
+        private PlanarMover _mover;
+        private bool _hasMover;
+
+        /// <summary>Lets device pushes go through the mover's cast instead of writing positions blind.</summary>
+        public void UseMover(PlanarMover mover)
+        {
+            _mover = mover;
+            _hasMover = true;
+        }
+
+        private Vector3 Push(Racer racer, Vector3 delta) =>
+            _hasMover ? _mover.Shove(racer.Position, racer.HalfExtent, delta) : racer.Position + delta;
         private readonly float _groundY;
 
         public bool Any => _saws.Count + _slabs.Count + _spikes.Count + _bumps.Count + _conveyors.Count +
@@ -305,7 +320,7 @@ namespace CubeSim.Core
                 {
                     ConveyorArea belt = _conveyors[c];
                     if (!belt.Contains(racer.Position)) continue;
-                    racer.Position += belt.Direction * (belt.Speed * deltaTime);
+                    racer.Position = Push(racer, belt.Direction * (belt.Speed * deltaTime));
                     break;
                 }
             }
@@ -456,7 +471,8 @@ namespace CubeSim.Core
 
                 racer.Direction = away;
                 // Step clear of the barrel so the next cast does not start inside it.
-                racer.Position = c + away * (bump.Pad.Radius + racer.Radius + 0.05f);
+                Vector3 clear = c + away * (bump.Pad.Radius + racer.Radius + 0.05f);
+                racer.Position = Push(racer, clear - racer.Position);
 
                 if (racer.BoostUntil <= 0f) racer.BaseSpeed = racer.Speed;
                 racer.Speed = racer.BaseSpeed * bump.Pad.BoostMultiplier;
@@ -548,6 +564,11 @@ namespace CubeSim.Core
         private void StepTeleporters(Racer racer, float elapsed)
         {
             if (_pads.Count < 2) return;
+            if (_arrivedOn.TryGetValue(racer.Index, out Teleporter landing))
+            {
+                if (landing.Contains(racer.Position)) return;
+                _arrivedOn.Remove(racer.Index);
+            }
             if (_lastTeleport.TryGetValue(racer.Index, out float last) && elapsed - last < 1.5f) return;
 
             for (int p = 0; p < _pads.Count; p++)
@@ -567,6 +588,7 @@ namespace CubeSim.Core
                 Vector3 to = twin.Center;
                 racer.Position = new Vector3(to.x, racer.Position.y, to.z);
                 _lastTeleport[racer.Index] = elapsed;
+                _arrivedOn[racer.Index] = twin;
                 OnTeleport?.Invoke(racer, from, racer.Position);
                 return;
             }

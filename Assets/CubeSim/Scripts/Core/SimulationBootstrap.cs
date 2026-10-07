@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using CubeSim.Arena;
@@ -215,6 +216,7 @@ namespace CubeSim.Core
 
             _runner = new SimulationRunner(_activeConfig, arena, pressure, combat, goals,
                 breakableWalls, racers, food, obstacles, devices);
+            _runner.GoalField = BuildGoalField(arena, pressure);
             _resultLogged = false;
 
             _vfx = new VfxSystem(vfxLibrary, _activeConfig.simulation.groundY, _sceneRoot);
@@ -437,6 +439,18 @@ namespace CubeSim.Core
         {
             if (!_activeConfig.pressure.enabled) return new NullPressureField();
 
+            if (_activeConfig.pressure.mode == PressureMode.Zone)
+            {
+                // The zone rasterises the walls through physics queries, so they must be synced.
+                Physics.SyncTransforms();
+                // Its own stream: picking a centre must not reshuffle spawns of an approved seed.
+                var zoneRandom = new SimulationRandom(_activeConfig.seed ^ 0x5A0E5EED);
+                var zone = new GridZonePressure(_activeConfig.pressure, arena,
+                    Mathf.Max(0.05f, _activeConfig.racers.cubeSize * 0.5f), zoneRandom, _sceneRoot);
+                if (zone.Enabled) return zone;
+                Debug.LogWarning("[CubeSim] Zone pressure could not be built for this map; falling back to linear slabs.");
+            }
+
             if (_activeConfig.pressure.mode == PressureMode.AuthoredTrack)
             {
                 if (arena.Track != null)
@@ -452,6 +466,26 @@ namespace CubeSim.Core
             // Real arena extents, so an authored map's slabs start at its actual edges.
             return new LinearSlabPressure(_activeConfig.pressure, arena.PlayableRect,
                 _activeConfig.simulation.groundY, _materials, _sceneRoot);
+        }
+
+        /// <summary>
+        /// Walking distance to the goal, for race standings and timeout tiebreaks. A chasing zone
+        /// already built one; otherwise any map with a goal gets its own.
+        /// </summary>
+        private PathField BuildGoalField(ArenaRuntime arena, PressureField pressure)
+        {
+            if (pressure.GoalField != null) return pressure.GoalField;
+            if (arena.GoalAreas == null || arena.GoalAreas.Count == 0) return null;
+
+            var goals = new List<Rect>();
+            for (int i = 0; i < arena.GoalAreas.Count; i++)
+            {
+                if (arena.GoalAreas[i] != null) goals.Add(arena.GoalAreas[i].Footprint);
+            }
+
+            PathField field = PathField.Build(arena, Mathf.Max(0.05f, _activeConfig.racers.cubeSize * 0.5f),
+                _activeConfig.pressure.zone != null ? _activeConfig.pressure.zone.cellSize : 0.5f);
+            return field.ComputeFrom(goals) ? field : null;
         }
 
         /// <summary>

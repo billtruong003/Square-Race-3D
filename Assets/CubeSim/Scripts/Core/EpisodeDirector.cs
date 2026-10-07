@@ -106,6 +106,14 @@ namespace CubeSim.Core
             Collapse = 4,
             /// <summary>Portrait courts: one wall sweeps down from the top edge (+Z) toward the goal at the bottom.</summary>
             ChaseDown = 5,
+            /// <summary>Race zone A: eats the course along walking distance, far end first, goal last.</summary>
+            ZoneChase = 6,
+            /// <summary>Battle zone B: announced shrinking rings around an open-floor centre.</summary>
+            ZoneCircle = 7,
+            /// <summary>Battle zone C: floor tiles fall away in waves toward a final platform.</summary>
+            ZoneCollapse = 8,
+            /// <summary>Battle: ZoneCircle or ZoneCollapse, picked per map from its id so each map keeps one look.</summary>
+            ZoneBattle = 9,
         }
 
         /// <summary>Team colours dealt when a round asks for teams. Red vs blue first, always.</summary>
@@ -401,6 +409,9 @@ namespace CubeSim.Core
         /// outright (a Collapse needs four sides, the scene ships two); Config only nudges what
         /// is already there, which keeps the older hand-tuned scenes behaving as before.
         /// </summary>
+        /// <summary>Run old Chase/Collapse rounds as zones. Off restores the original slabs.</summary>
+        public static bool LegacySlabsAsZones = true;
+
         public static void ApplyPressureProfile(SimulationConfig config, RoundSpec round)
         {
             float delay = round.pressureStartDelay >= 0f ? round.pressureStartDelay : 6f;
@@ -413,8 +424,43 @@ namespace CubeSim.Core
                 side = side, startInset = 0.5f, targetInset = target, startDelay = delay, speed = speed
             };
 
-            switch (round.pressureProfile)
+            PressureProfile profile = round.pressureProfile;
+            bool native = profile >= PressureProfile.ZoneChase;
+            if (LegacySlabsAsZones)
             {
+                // Every scene built before the zone existed still says Chase or Collapse. Their slabs
+                // ignored the map (rolled over goals, crushed the field into a central wall), so they
+                // run as the matching walking-distance zone instead - no scene rebuild needed.
+                if (profile == PressureProfile.Chase || profile == PressureProfile.ChaseDown) profile = PressureProfile.ZoneChase;
+                else if (profile == PressureProfile.Collapse) profile = PressureProfile.ZoneBattle;
+            }
+
+            if (profile == PressureProfile.ZoneBattle)
+            {
+                profile = StableHash(round.arenaId) % 2 == 0 ? PressureProfile.ZoneCircle : PressureProfile.ZoneCollapse;
+            }
+
+            switch (profile)
+            {
+                case PressureProfile.ZoneChase:
+                case PressureProfile.ZoneCircle:
+                case PressureProfile.ZoneCollapse:
+                {
+                    // Profiles replace the squeeze outright, so they must also switch it on: a template
+                    // that shipped with pressure off used to make Chase/Collapse silently do nothing.
+                    config.pressure.enabled = true;
+                    config.pressure.mode = Arena.PressureMode.Zone;
+                    var zone = config.pressure.zone ?? new Arena.ZoneConfig();
+                    zone.shape = profile == PressureProfile.ZoneChase ? Arena.ZoneShape.PathChase
+                        : profile == PressureProfile.ZoneCircle ? Arena.ZoneShape.Circle
+                        : Arena.ZoneShape.Collapse;
+                    if (round.pressureStartDelay >= 0f) zone.startDelay = round.pressureStartDelay;
+                    // A converted slab speed is metres of inset per second, not metres of walk.
+                    if (native && round.pressureSpeed > 0f) zone.speed = round.pressureSpeed;
+                    config.pressure.zone = zone;
+                    break;
+                }
+
                 case PressureProfile.Park:
                     foreach (PressureSlabConfig slab in config.pressure.slabs)
                     {
@@ -426,16 +472,19 @@ namespace CubeSim.Core
                 case PressureProfile.Chase:
                     // One wall behind the spawn line, herding the field at the goal (+X) and
                     // stopping short of it - a symmetric squeeze would roll over the finish.
+                    config.pressure.enabled = true;
                     config.pressure.mode = Arena.PressureMode.LinearSlabs;
                     config.pressure.slabs = new List<PressureSlabConfig> { Slab(PressureSide.Left, insetX) };
                     break;
 
                 case PressureProfile.ChaseDown:
+                    config.pressure.enabled = true;
                     config.pressure.mode = Arena.PressureMode.LinearSlabs;
                     config.pressure.slabs = new List<PressureSlabConfig> { Slab(PressureSide.Front, insetX) };
                     break;
 
                 case PressureProfile.Corridor:
+                    config.pressure.enabled = true;
                     config.pressure.mode = Arena.PressureMode.LinearSlabs;
                     config.pressure.slabs = new List<PressureSlabConfig>
                     {
@@ -445,6 +494,7 @@ namespace CubeSim.Core
 
                 case PressureProfile.Collapse:
                     // All four sides close on a central pit: nobody gets to orbit the edges.
+                    config.pressure.enabled = true;
                     config.pressure.mode = Arena.PressureMode.LinearSlabs;
                     config.pressure.slabs = new List<PressureSlabConfig>
                     {
@@ -461,6 +511,20 @@ namespace CubeSim.Core
                         if (round.pressureSpeed > 0f) slab.speed = round.pressureSpeed;
                     }
                     break;
+            }
+        }
+
+        /// <summary>FNV-1a: string.GetHashCode is randomised per process, this is stable forever.</summary>
+        private static int StableHash(string text)
+        {
+            unchecked
+            {
+                uint h = 2166136261;
+                if (!string.IsNullOrEmpty(text))
+                {
+                    for (int i = 0; i < text.Length; i++) { h ^= text[i]; h *= 16777619; }
+                }
+                return (int)(h & 0x7fffffff);
             }
         }
 

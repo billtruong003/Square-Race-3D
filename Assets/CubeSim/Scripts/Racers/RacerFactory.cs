@@ -256,13 +256,25 @@ namespace CubeSim.Racers
             switch (setup.startDirectionMode)
             {
                 case StartDirectionMode.Explicit:
-                    if (setup.startAngles.Count > 0) return setup.startAngles[index % setup.startAngles.Count];
+                    if (setup.startAngles.Count > 0) return KeepOffAxis(setup.startAngles[index % setup.startAngles.Count], setup.minAxisAngle);
                     break;
                 case StartDirectionMode.Fan:
-                    return 360f * index / Mathf.Max(1, count);
+                    return KeepOffAxis(360f * index / Mathf.Max(1, count), setup.minAxisAngle);
             }
 
             return PlanarMath.AngleFromDirection(random.NextPlanarDirectionBiased(setup.minAxisAngle));
+        }
+
+        /// <summary>
+        /// Every wall is axis aligned, so a heading along an axis only ever flips sign: the cube
+        /// shuttles between two parallel walls forever. Keep each start at least minAxisAngle off.
+        /// </summary>
+        private static float KeepOffAxis(float angle, float minAxisAngle)
+        {
+            float quadrant = Mathf.Floor(angle / 90f) * 90f;
+            float within = angle - quadrant;
+            within = Mathf.Clamp(within, minAxisAngle, 90f - minAxisAngle);
+            return quadrant + within;
         }
 
         /// <summary>
