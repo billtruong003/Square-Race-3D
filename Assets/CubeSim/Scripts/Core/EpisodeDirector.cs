@@ -248,7 +248,10 @@ namespace CubeSim.Core
                     // per three racers, the 76 px rule strip and a little air, on a 1920 px frame.
                     int hudRacers = round.racerCount > 0 ? round.racerCount : Mathf.Max(1, config.racers.count);
                     int hudLines = Mathf.CeilToInt(hudRacers / 3f);
-                    config.camera.topReserve = Mathf.Clamp((150f + hudLines * 44f + 76f + 24f) / 1920f, 0.16f, 0.34f);
+                    config.camera.topReserve = SimulationBootstrap.UsesRaceHud(config)
+                        // HUD C is one 150 px bar at the top; the banner and ticker sit over the court.
+                        ? (40f + 150f + 20f) / 1920f
+                        : Mathf.Clamp((150f + hudLines * 44f + 76f + 24f) / 1920f, 0.16f, 0.34f);
                     config.camera.margin = 1.03f;
                 }
                 _bootstrap.SetPortraitHud(round.portrait);

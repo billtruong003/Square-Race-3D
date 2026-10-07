@@ -75,6 +75,12 @@ namespace CubeSim.Core
         private DamagePopupSystem _popups;
         private HealthBarSystem _healthBars;
         private LeaderboardOverlay _leaderboard;
+        private RaceHudOverlay _raceHud;
+
+        /// <summary>Formats where the cubes race to a goal get HUD C instead of the standings table.</summary>
+        public static bool UsesRaceHud(SimulationConfig config) =>
+            config.endRules.winCondition == WinCondition.ReachGoal ||
+            config.endRules.winCondition == WinCondition.TeamFinishers;
         private bool _resultLogged;
         private float _resultHoldTimer;
 
@@ -239,7 +245,18 @@ namespace CubeSim.Core
                 _audio?.Melody?.PlayNextNote(0.5f);
             };
 
-            if (showLeaderboard)
+            bool raceHud = showLeaderboard && UsesRaceHud(_activeConfig) && _runner.GoalField != null;
+            if (_raceHud != null) _raceHud.gameObject.SetActive(raceHud);
+            if (_leaderboard != null) _leaderboard.gameObject.SetActive(showLeaderboard && !raceHud);
+
+            if (raceHud)
+            {
+                // HUD C: races read as a progress bar from START to GOAL, not a ranking table.
+                if (_raceHud == null) _raceHud = RaceHudOverlay.Create(transform);
+                _raceHud.Bind(racers, _portraitHud, Visuals.RuleText.Describe(_activeConfig),
+                    () => Visuals.RuleText.Counter(_runner, _activeConfig));
+            }
+            else if (showLeaderboard)
             {
                 if (_leaderboard == null) _leaderboard = LeaderboardOverlay.Create(transform);
                 _leaderboard.Bind(racers, _portraitHud);
