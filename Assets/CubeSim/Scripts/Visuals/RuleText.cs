@@ -25,6 +25,7 @@ namespace CubeSim.Visuals
                 case ModeKind.HotPotato: return "HOT POTATO  ·  holder explodes at 0";
                 case ModeKind.LuckyBlock: return "LUCKY BLOCKS  ·  smash crates for loot";
                 case ModeKind.PaintWar: return $"PAINT WAR  ·  most floor in {Mathf.RoundToInt(config.endRules.maxDuration)}s";
+                case ModeKind.Arena: return "ARENA  ·  weapons drop inside the zone, last one standing";
             }
 
             switch (config.endRules.winCondition)
@@ -78,6 +79,10 @@ namespace CubeSim.Visuals
             if (runner.Loot != null)
             {
                 return $"ALIVE  {runner.AliveCount}      CRATES OPENED  {runner.Loot.Drops}      KNIVES  {runner.Loot.KnivesDropped}";
+            }
+            if (runner.Combat != null && runner.Combat.ArenaActive)
+            {
+                return $"ALIVE  {runner.AliveCount}      NEXT DROP  {runner.Combat.NextDropIn:0}s      ON FLOOR  {runner.Combat.WeaponsOnFloor}";
             }
             if (runner.Paint != null)
             {

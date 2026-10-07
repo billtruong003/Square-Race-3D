@@ -43,6 +43,7 @@ namespace CubeSim.EditorTools
             public int RockTile = 2;
             public float SawDamage = 0.5f;
             public int Finishers = 1;
+            public ModeKind Mode = ModeKind.None;
         }
 
         private static Tuning TuningFor(string map)
@@ -59,21 +60,26 @@ namespace CubeSim.EditorTools
                         Pressure = EpisodeDirector.PressureProfile.ChaseDown, PressureDelay = 5f, PressureSpeed = 1.1f, InsetX = 54f };
                 case "SD":
                     return new Tuning { Win = WinCondition.LastAlive, Duration = 300f, MaxHealth = 1f, Weapons = 1, Racers = 12,
-                        Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 5f, PressureSpeed = 0.5f, InsetX = 15f, InsetZ = 29f };
+                        Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 5f, PressureSpeed = 0.5f, InsetX = 16f, InsetZ = 33f };
                 case "SW":
                     return new Tuning { Win = WinCondition.LastAlive, Duration = 300f, MaxHealth = 2f, Weapons = 1, SawDamage = 1f, Racers = 12,
-                        Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 5f, PressureSpeed = 0.5f, InsetX = 15f, InsetZ = 29f };
+                        Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 5f, PressureSpeed = 0.5f, InsetX = 16f, InsetZ = 33f };
                 case "TW":
                     bool fourWay = map == "TW11" || map == "TW12" || map == "TW13";
                     return new Tuning { Win = WinCondition.LastTeamAlive, Duration = 300f, MaxHealth = 2f, Weapons = 2,
                         Racers = 20, Teams = fourWay ? 4 : 2, BreakableHits = 40,
-                        Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 8f, PressureSpeed = 0.45f, InsetX = 15f, InsetZ = 29f };
+                        Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 8f, PressureSpeed = 0.45f, InsetX = 16f, InsetZ = 33f };
+                case "LB":
+                    // Lucky Block: no knife on the floor, every weapon comes out of a crate.
+                    return new Tuning { Win = WinCondition.LastAlive, Duration = 300f, MaxHealth = 2f, Weapons = 0, Racers = 12,
+                        Mode = ModeKind.LuckyBlock,
+                        Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 15f, PressureSpeed = 0.5f, InsetX = 16f, InsetZ = 33f };
                 case "CR":
                     return new Tuning { Win = WinCondition.MostCoins, Duration = 40f, Weapons = 0, Racers = 12,
                         Pressure = EpisodeDirector.PressureProfile.Park, PressureDelay = 100000f, PressureSpeed = 0f };
                 default:
                     return new Tuning { Win = WinCondition.LastAlive, Duration = 300f, Weapons = 1, Racers = 12,
-                        Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 5f, PressureSpeed = 0.5f, InsetX = 15f, InsetZ = 29f };
+                        Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 5f, PressureSpeed = 0.5f, InsetX = 16f, InsetZ = 33f };
             }
         }
 
@@ -179,6 +185,7 @@ namespace CubeSim.EditorTools
                         pressureTargetInsetZ = tune.InsetZ,
                         portrait = true,
                         requiredFinishers = tune.Finishers,
+                        modeKind = tune.Mode,
                     }
                 });
 

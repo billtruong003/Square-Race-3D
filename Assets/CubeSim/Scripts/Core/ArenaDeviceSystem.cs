@@ -257,7 +257,9 @@ namespace CubeSim.Core
                 SpikeState next = s.Trap.StateAt(elapsed);
                 if (next == SpikeState.Warning && s.State != SpikeState.Warning) OnSpikeWarn?.Invoke(s.Trap.Center);
                 s.State = next;
-                float height = s.State == SpikeState.Up ? 1f : s.State == SpikeState.Warning ? 0.25f : 0.04f;
+                // Never squash the model flat: at 4 % the holed base vanished and an idle trap read as a
+                // black slab. Retracted spikes stay as low studs, so the field is always legible.
+                float height = s.State == SpikeState.Up ? 1f : s.State == SpikeState.Warning ? 0.5f : 0.2f;
                 for (int v = 0; v < s.Visuals.Length; v++)
                 {
                     Vector3 scale = s.Visuals[v].localScale;

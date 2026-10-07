@@ -23,6 +23,8 @@ namespace CubeSim.Visuals
             public Image Portrait;
             public Text Name;
             public Text Hearts;
+            public Image HpBack;
+            public Image HpFill;
             public Text Score;
             public CanvasGroup Group;
         }
@@ -143,10 +145,11 @@ namespace CubeSim.Visuals
             {
                 // Landscape: the strip is wider than a row so the rule fits on one line; it still
                 // starts at the column's left edge and lives inside the reserved side band.
-                _ruleRoot.anchorMin = _ruleRoot.anchorMax = new Vector2(0f, 0.5f);
-                _ruleRoot.pivot = new Vector2(0f, 1f);
-                _ruleRoot.sizeDelta = new Vector2(RowWidth + 130f, StripHeight);
-                _ruleRoot.anchoredPosition = new Vector2(16f, -(count * 0.5f * RowHeight + 12f));
+                // Bottom centre: inside every platform's safe zone, never under the side column.
+                _ruleRoot.anchorMin = _ruleRoot.anchorMax = new Vector2(0.5f, 0f);
+                _ruleRoot.pivot = new Vector2(0.5f, 0f);
+                _ruleRoot.sizeDelta = new Vector2(RowWidth + 330f, StripHeight);
+                _ruleRoot.anchoredPosition = new Vector2(0f, 28f);
             }
         }
 
@@ -215,6 +218,18 @@ namespace CubeSim.Visuals
                 else
                 {
                     row.Hearts.text = "";
+                }
+
+                bool hpScale = racer.MaxHealth > 6f;
+                row.HpBack.enabled = hpScale;
+                row.HpFill.enabled = hpScale;
+                if (hpScale)
+                {
+                    float ratio = racer.Alive ? Mathf.Clamp01(racer.Health / racer.MaxHealth) : 0f;
+                    row.HpFill.rectTransform.sizeDelta = new Vector2(66f * ratio, 10f);
+                    row.HpFill.color = ratio > 0.5f
+                        ? Color.Lerp(new Color(1f, 0.85f, 0.15f), new Color(0.2f, 0.95f, 0.3f), (ratio - 0.5f) * 2f)
+                        : Color.Lerp(new Color(0.95f, 0.15f, 0.15f), new Color(1f, 0.85f, 0.15f), ratio * 2f);
                 }
 
                 string score = "";
@@ -358,6 +373,26 @@ namespace CubeSim.Visuals
             name.rectTransform.sizeDelta = new Vector2(120f, RowHeight);
             name.rectTransform.anchoredPosition = new Vector2(106f, 0f);
 
+            // HP bar (Arena mode): same slot as the hearts, 66 x 10 px, left-anchored fill.
+            var hpBackGo = new GameObject("HpBack");
+            hpBackGo.transform.SetParent(rowGo.transform, false);
+            var hpBack = hpBackGo.AddComponent<Image>();
+            hpBack.color = new Color(0f, 0f, 0f, 0.6f);
+            var hpBackRect = hpBack.rectTransform;
+            hpBackRect.anchorMin = hpBackRect.anchorMax = new Vector2(0f, 0.5f);
+            hpBackRect.pivot = new Vector2(0f, 0.5f);
+            hpBackRect.sizeDelta = new Vector2(68f, 12f);
+            hpBackRect.anchoredPosition = new Vector2(210f, 0f);
+            var hpFillGo = new GameObject("HpFill");
+            hpFillGo.transform.SetParent(hpBackGo.transform, false);
+            var hpFill = hpFillGo.AddComponent<Image>();
+            var hpFillRect = hpFill.rectTransform;
+            hpFillRect.anchorMin = hpFillRect.anchorMax = new Vector2(0f, 0.5f);
+            hpFillRect.pivot = new Vector2(0f, 0.5f);
+            hpFillRect.sizeDelta = new Vector2(66f, 10f);
+            hpFillRect.anchoredPosition = new Vector2(1f, 0f);
+            hpBack.enabled = false; hpFill.enabled = false;
+
             Text hearts = BuildText(rowGo.transform, "Hearts", 20, TextAnchor.MiddleLeft);
             hearts.rectTransform.anchorMin = hearts.rectTransform.anchorMax = new Vector2(0f, 0.5f);
             hearts.rectTransform.sizeDelta = new Vector2(70f, RowHeight);
@@ -371,7 +406,7 @@ namespace CubeSim.Visuals
             return new Row
             {
                 Root = rect, Swatch = swatch, Portrait = portrait,
-                Name = name, Hearts = hearts, Score = score, Group = group
+                Name = name, Hearts = hearts, HpBack = hpBack, HpFill = hpFill, Score = score, Group = group
             };
         }
 

@@ -17,6 +17,7 @@ namespace CubeSim.EditorTools
         public const string LibraryPath = "Assets/CubeSim/Data/AudioLibrary.asset";
         private const string EtfxSound = "Assets/Epic Toon FX/Sound/";
         private const string Sfx = "Assets/CubeSim/Audio/SFX/";
+        private const string Kombat = "Assets/Deadly Kombat Free version/";
         private const string BgmFolder = "Assets/BGM_LOOP";
 
         private struct Pick
@@ -64,6 +65,22 @@ namespace CubeSim.EditorTools
             // low crumble when the boulder finally gives.
             new Pick { Id = SimSoundId.RockHit,     Clip = Sfx + "Devices/RockHit.ogg",     Volume = 0.5f,  PitchMin = 0.85f, PitchMax = 1.15f },
             new Pick { Id = SimSoundId.RockBreak,   Clip = Sfx + "Devices/RockBreak.ogg",   Volume = 0.7f,  PitchMin = 0.9f,  PitchMax = 1.0f },
+
+            // Arena juice: one voice per weapon family.
+            new Pick { Id = SimSoundId.BladeHit,    Clip = Kombat + "blade_hit_07.wav",              Volume = 0.7f,  PitchMin = 0.95f, PitchMax = 1.1f },
+            new Pick { Id = SimSoundId.PunchHit,    Clip = Kombat + "body_hit_large_44.wav",         Volume = 0.8f,  PitchMin = 0.9f,  PitchMax = 1.05f },
+            new Pick { Id = SimSoundId.ChainsawHit, Clip = Kombat + "guts_and_gore_19.wav",          Volume = 0.45f, PitchMin = 1.1f,  PitchMax = 1.3f },
+            new Pick { Id = SimSoundId.GunShot,     Clip = EtfxSound + "etfx_shoot_pistol02.wav",    Volume = 0.55f, PitchMin = 0.95f, PitchMax = 1.1f },
+            new Pick { Id = SimSoundId.ShotgunShot, Clip = EtfxSound + "etfx_shoot_pistol03.wav",    Volume = 0.7f,  PitchMin = 0.7f,  PitchMax = 0.8f },
+            new Pick { Id = SimSoundId.SniperShot,  Clip = EtfxSound + "etfx_shoot_laser.wav",       Volume = 0.75f, PitchMin = 0.9f,  PitchMax = 1.0f },
+            new Pick { Id = SimSoundId.RocketShot,  Clip = EtfxSound + "etfx_shoot_rocket.wav",      Volume = 0.65f, PitchMin = 1.0f,  PitchMax = 1.0f },
+            new Pick { Id = SimSoundId.GrenadeShot, Clip = EtfxSound + "etfx_shoot_grenade.wav",     Volume = 0.6f,  PitchMin = 1.0f,  PitchMax = 1.0f },
+            new Pick { Id = SimSoundId.BulletHit,   Clip = Kombat + "body_hit_small_20.wav",         Volume = 0.6f,  PitchMin = 1.0f,  PitchMax = 1.2f },
+            new Pick { Id = SimSoundId.Explosion,   Clip = EtfxSound + "etfx_explosion_grenade.wav", Volume = 0.8f,  PitchMin = 0.95f, PitchMax = 1.05f },
+            new Pick { Id = SimSoundId.ShieldBlock, Clip = Kombat + "block_large_59.wav",            Volume = 0.7f,  PitchMin = 1.0f,  PitchMax = 1.1f },
+            new Pick { Id = SimSoundId.Finisher,    Clip = Kombat + "body_hit_finisher_27.wav",      Volume = 0.85f, PitchMin = 1.0f,  PitchMax = 1.0f },
+            new Pick { Id = SimSoundId.Critical,    Clip = Kombat + "bone_breaking_03.wav",          Volume = 0.8f,  PitchMin = 1.0f,  PitchMax = 1.0f },
+            new Pick { Id = SimSoundId.Whoosh,      Clip = Kombat + "punch_short_whoosh_16.wav",     Volume = 0.5f,  PitchMin = 0.95f, PitchMax = 1.15f },
         };
 
         /// <summary>Stand-in for the eat pop until the real Among-Us eat sample is provided.</summary>

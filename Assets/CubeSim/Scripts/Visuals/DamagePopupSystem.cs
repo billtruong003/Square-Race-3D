@@ -32,9 +32,14 @@ namespace CubeSim.Visuals
             _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         }
 
-        public void Show(Vector3 position, Color color)
+        public void Show(Vector3 position, Color color) => Show(position, color, "-♥", 1f);
+
+        /// <summary>Custom label (damage number, CRITICAL) and size multiplier.</summary>
+        public void Show(Vector3 position, Color color, string label, float scale)
         {
             Popup popup = _idle.Count > 0 ? _idle.Pop() : Build();
+            popup.Text.text = label;
+            popup.Text.characterSize = 0.028f * scale;
 
             popup.Age = 0f;
             popup.Origin = position + new Vector3(0f, 2.6f, 0f);

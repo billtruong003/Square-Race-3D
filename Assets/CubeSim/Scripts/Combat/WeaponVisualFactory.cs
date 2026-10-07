@@ -45,21 +45,41 @@ namespace CubeSim.Combat
             GameObject root;
             if (entry != null && entry.prefab != null)
             {
-                root = Object.Instantiate(entry.prefab);
-                StripGameplayComponents(root);
-                ConvertMaterials(root);
-
                 float contextScale = context == Context.Pickup
                     ? Mathf.Max(0.01f, entry.pickupScale)
                     : Mathf.Max(0.01f, entry.equippedScale);
+                float scale = Mathf.Max(0.01f, entry.scale) * contextScale;
 
                 Quaternion rotation = Quaternion.Euler(entry.orientation);
                 if (context == Context.Equipped) rotation = Quaternion.Euler(entry.equippedEuler) * rotation;
 
-                root.transform.SetParent(parent, false);
-                root.transform.localRotation = rotation;
-                root.transform.localPosition = entry.offset;
-                root.transform.localScale = Vector3.one * (Mathf.Max(0.01f, entry.scale) * contextScale);
+                if (entry.pair && context == Context.Equipped)
+                {
+                    // Boxing gloves: a fist on each side, the second one mirrored in X, so the cube
+                    // visibly wears both. Offset sits the pair at body height instead of over the face.
+                    root = new GameObject("Pair");
+                    root.transform.SetParent(parent, false);
+                    root.transform.localPosition = entry.offset;
+                    for (int side = -1; side <= 1; side += 2)
+                    {
+                        GameObject copy = Object.Instantiate(entry.prefab, root.transform);
+                        StripGameplayComponents(copy);
+                        ConvertMaterials(copy);
+                        copy.transform.localRotation = rotation;
+                        copy.transform.localPosition = new Vector3(side * entry.pairOffset, 0f, 0f);
+                        copy.transform.localScale = new Vector3(side * scale, scale, scale);
+                    }
+                }
+                else
+                {
+                    root = Object.Instantiate(entry.prefab);
+                    StripGameplayComponents(root);
+                    ConvertMaterials(root);
+                    root.transform.SetParent(parent, false);
+                    root.transform.localRotation = rotation;
+                    root.transform.localPosition = entry.offset;
+                    root.transform.localScale = Vector3.one * scale;
+                }
             }
             else
             {
@@ -81,8 +101,9 @@ namespace CubeSim.Combat
             if (entry?.projectilePrefab == null) return null;
 
             GameObject root = Object.Instantiate(entry.projectilePrefab, parent);
-            StripGameplayComponents(root);
-            ConvertMaterials(root);
+            // Toon FX missiles are particle systems that ride the bolt: keep them.
+            StripGameplayComponents(root, keepParticles: true);
+            if (root.GetComponentInChildren<ParticleSystem>() == null) ConvertMaterials(root);
 
             root.transform.localRotation = Quaternion.Euler(entry.projectileEuler);
             root.transform.localPosition = Vector3.zero;
@@ -94,12 +115,12 @@ namespace CubeSim.Combat
         /// Pack prefabs bring colliders, rigidbodies and scripts. None of that belongs in a purely
         /// cosmetic weapon - a stray collider would show up in the movement casts.
         /// </summary>
-        private static void StripGameplayComponents(GameObject root)
+        private static void StripGameplayComponents(GameObject root, bool keepParticles = false)
         {
             foreach (Collider collider in root.GetComponentsInChildren<Collider>(true)) Destroy(collider);
             foreach (Rigidbody body in root.GetComponentsInChildren<Rigidbody>(true)) Destroy(body);
             foreach (Light light in root.GetComponentsInChildren<Light>(true)) Destroy(light);
-            foreach (ParticleSystem particles in root.GetComponentsInChildren<ParticleSystem>(true)) Destroy(particles);
+            if (!keepParticles) foreach (ParticleSystem particles in root.GetComponentsInChildren<ParticleSystem>(true)) Destroy(particles);
 
             // The POLYGON pack nests a camera (with an audio listener) inside some gun prefabs.
             foreach (AudioListener listener in root.GetComponentsInChildren<AudioListener>(true)) Destroy(listener);
@@ -122,7 +143,8 @@ namespace CubeSim.Combat
                 for (int i = 0; i < source.Length; i++) converted[i] = Convert(source[i]);
                 renderer.sharedMaterials = converted;
 
-                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+                bool effect = source.Length > 0 && source[0] != null && source[0].shader.name.StartsWith("CubeSim/");
+                renderer.shadowCastingMode = effect ? UnityEngine.Rendering.ShadowCastingMode.Off : UnityEngine.Rendering.ShadowCastingMode.On;
             }
         }
 
@@ -130,8 +152,8 @@ namespace CubeSim.Combat
         {
             if (source == null) return null;
 
-            // Already in the project's toon family, or a URP material: leave it alone.
-            if (source.shader == _toonShader) return source;
+            // Already in the project's toon family, or one of our own effect shaders: leave it alone.
+            if (source.shader == _toonShader || source.shader.name.StartsWith("CubeSim/")) return source;
 
             if (Remapped.TryGetValue(source, out Material cached) && cached != null) return cached;
 
@@ -169,12 +191,17 @@ namespace CubeSim.Combat
             if (material.HasProperty("_Threshold")) material.SetFloat("_Threshold", 0.45f);
 
             // Carry over emission so glowing pack parts keep glowing under the toon shader.
+            // The map matters: a pack lamp is a black map with one bright pixel, and a white
+            // emission colour without the map turned whole guns into white blobs.
             Color emission = source.HasProperty("_EmissionColor") ? source.GetColor("_EmissionColor") : Color.black;
-            if (emission.maxColorComponent > 0.01f && material.HasProperty("_EmissionColor"))
+            Texture emissionMap = source.HasProperty("_EmissionMap") ? source.GetTexture("_EmissionMap") : null;
+            if (emission.maxColorComponent > 0.01f && material.HasProperty("_EmissionColor") &&
+                (emissionMap != null || !source.HasProperty("_EmissionMap")))
             {
                 material.EnableKeyword("_EMISSION");
                 if (material.HasProperty("_Emission")) material.SetFloat("_Emission", 1f);
                 material.SetColor("_EmissionColor", emission);
+                if (emissionMap != null && material.HasProperty("_EmissionMap")) material.SetTexture("_EmissionMap", emissionMap);
             }
 
             // Only carry alpha clipping when the source actually used it - forcing it on turns solid

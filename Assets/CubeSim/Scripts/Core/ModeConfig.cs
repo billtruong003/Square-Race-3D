@@ -15,6 +15,8 @@ namespace CubeSim.Core
         LuckyBlock = 3,
         /// <summary>Racers paint the floor they cross; most tiles when the clock ends wins.</summary>
         PaintWar = 4,
+        /// <summary>Anime Fight Arena: 100 HP, health bars, weapons airdropped inside the shrinking zone.</summary>
+        Arena = 5,
     }
 
     /// <summary>
@@ -59,6 +61,18 @@ namespace CubeSim.Core
         public float lootBomb = 20f;
         public float lootBoostSeconds = 5f;
         public float lootBoostScale = 1.6f;
+
+        [Header("Arena (weapons airdrop)")]
+        [Tooltip("Weapons allowed on the floor at once.")]
+        public int arenaMaxWeapons = 4;
+        [Tooltip("Seconds between airdrops while below the cap.")]
+        public float arenaDropInterval = 6f;
+        [Tooltip("Seconds the drop shadow shows before the weapon lands.")]
+        public float arenaDropWarning = 1.2f;
+        [Tooltip("Minimum distance from the safe-zone edge for a drop.")]
+        public float arenaDropEdgeMargin = 3f;
+        [Tooltip("Weapon ids and drop weights, 'id:weight' per entry. Empty = every catalog entry, weight 1.")]
+        public System.Collections.Generic.List<string> arenaDropTable = new System.Collections.Generic.List<string>();
 
         [Header("Paint War")]
         public float paintTileSize = 1.42f;

@@ -64,7 +64,7 @@ namespace CubeSim.EditorTools
                 Win = WinCondition.LastTeamAlive, Duration = 300f, Rounds = 6,
                 WeaponCount = 2, RacerCount = 20, TeamCount = 2,
                 Pressure = EpisodeDirector.PressureProfile.Collapse,
-                PressureDelay = 20f, PressureSpeed = 0.45f, PressureInsetX = 29f, PressureInsetZ = 15f,
+                PressureDelay = 20f, PressureSpeed = 0.45f, PressureInsetX = 33f, PressureInsetZ = 16f,
                 BreakableHits = 60,   // one merged pen door vs ten racers (~2.5-5 hits/s): sealed 12-24s
             },
             // F03 Race: goal mandatory, squeeze never kills, and NO knives - killing racers
@@ -85,7 +85,7 @@ namespace CubeSim.EditorTools
                 Win = WinCondition.LastAlive, Duration = 300f, Rounds = 6,
                 MaxHealth = 1f, WeaponCount = 1,
                 Pressure = EpisodeDirector.PressureProfile.Collapse,
-                PressureDelay = 8f, PressureSpeed = 0.5f, PressureInsetX = 29f, PressureInsetZ = 15f,
+                PressureDelay = 8f, PressureSpeed = 0.5f, PressureInsetX = 33f, PressureInsetZ = 16f,
             },
             // F08 Saw Gauntlet: the rotors are the killer, one knife only, slow squeeze feeds them.
             new Format
@@ -94,7 +94,7 @@ namespace CubeSim.EditorTools
                 Win = WinCondition.LastAlive, Duration = 300f, Rounds = 6,
                 WeaponCount = 1, SawDamage = 1f,
                 Pressure = EpisodeDirector.PressureProfile.Collapse,
-                PressureDelay = 15f, PressureSpeed = 0.5f, PressureInsetX = 29f, PressureInsetZ = 15f,
+                PressureDelay = 15f, PressureSpeed = 0.5f, PressureInsetX = 33f, PressureInsetZ = 16f,
             },
             // F07 Rainbow Rush: colour gates (only the matching cube opens a pane) plus white
             // panes anyone can grind down. No knives - every cube lost is a colour that can no
@@ -137,7 +137,7 @@ namespace CubeSim.EditorTools
                 Win = WinCondition.LastTeamAlive, Duration = 300f, Rounds = 6,
                 WeaponCount = 2, RacerCount = 20, TeamCount = 4,
                 Pressure = EpisodeDirector.PressureProfile.Collapse,
-                PressureDelay = 25f, PressureSpeed = 0.45f, PressureInsetX = 29f, PressureInsetZ = 15f,
+                PressureDelay = 25f, PressureSpeed = 0.45f, PressureInsetX = 33f, PressureInsetZ = 16f,
                 BreakableHits = 60,
             },
         };

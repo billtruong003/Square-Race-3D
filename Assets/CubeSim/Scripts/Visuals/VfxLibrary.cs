@@ -19,7 +19,22 @@ namespace CubeSim.Visuals
         CrushDeath = 9,
         GoalReached = 10,
         WallBreak = 11,
-        BloodPool = 12
+        BloodPool = 12,
+
+        // Arena juice
+        PunchHit = 13,
+        PunchSwing = 14,
+        SlashHit = 15,
+        ChainsawGrind = 16,
+        GunMuzzle = 17,
+        Explosion = 18,
+        ExplosionRing = 19,
+        ShieldBlock = 20,
+        Kill = 21,
+        TextPow = 22,
+        TextKapow = 23,
+        TextBoom = 24,
+        TextCritical = 25
     }
 
     public enum VfxTintMode

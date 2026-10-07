@@ -34,7 +34,23 @@ namespace CubeSim.Visuals
         Teleport = 24,
         SpikeWarn = 25,
         RockHit = 26,
-        RockBreak = 27
+        RockBreak = 27,
+
+        // Arena juice (Deadly Kombat + Epic Toon FX one-shots)
+        BladeHit = 28,
+        PunchHit = 29,
+        ChainsawHit = 30,
+        GunShot = 31,
+        ShotgunShot = 32,
+        SniperShot = 33,
+        RocketShot = 34,
+        GrenadeShot = 35,
+        BulletHit = 36,
+        Explosion = 37,
+        ShieldBlock = 38,
+        Finisher = 39,
+        Critical = 40,
+        Whoosh = 41
     }
 
     /// <summary>What carries the music of an episode.</summary>

@@ -40,6 +40,11 @@ namespace CubeSim.Combat
             [Tooltip("Offset applied after orientation, to centre the model on its anchor.")]
             public Vector3 offset;
 
+            [Tooltip("Held as a mirrored pair (boxing gloves): one copy each side of the racer.")]
+            public bool pair;
+            [Tooltip("Sideways distance of each copy from the anchor, metres.")]
+            public float pairOffset = 1.5f;
+
             [Tooltip("Model used for this weapon's projectile. Empty falls back to a primitive.")]
             public GameObject projectilePrefab;
 

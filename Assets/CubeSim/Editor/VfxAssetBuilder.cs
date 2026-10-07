@@ -54,6 +54,21 @@ namespace CubeSim.EditorTools
             new Pick { Id = VfxId.CrushDeath,        PrefabName = "HitDustExplosion",       Scale = 4.5f, Lifetime = 1.3f,  Tint = VfxTintMode.None,   Height = 0.7f },
             new Pick { Id = VfxId.GoalReached,       PrefabName = "ConfettiBlastRainbow",   Scale = 3.5f, Lifetime = 3.0f,  Tint = VfxTintMode.None,   Height = 1.2f },
             new Pick { Id = VfxId.WallBreak,         PrefabName = "HitDustExplosion",       Scale = 5.5f, Lifetime = 1.4f,  Tint = VfxTintMode.None,   Height = 1.0f },
+
+            // Arena juice: every weapon kind gets its own impact, plus comic text on the big ones.
+            new Pick { Id = VfxId.PunchHit,          PrefabName = "ToonPunchHeavy",         Scale = 5.0f, Lifetime = 1.0f,  Tint = VfxTintMode.None,   Height = 1.2f },
+            new Pick { Id = VfxId.PunchSwing,        PrefabName = "ToonRadialPunchLight",   Scale = 3.5f, Lifetime = 0.6f,  Tint = VfxTintMode.Accent, Height = 1.0f },
+            new Pick { Id = VfxId.SlashHit,          PrefabName = "SwordHitRed",            Scale = 5.0f, Lifetime = 0.9f,  Tint = VfxTintMode.None,   Height = 1.2f },
+            new Pick { Id = VfxId.ChainsawGrind,     PrefabName = "BloodSplatWide",         Scale = 4.0f, Lifetime = 0.8f,  Tint = VfxTintMode.None,   Height = 1.0f },
+            new Pick { Id = VfxId.GunMuzzle,         PrefabName = "GunFireYellow",          Scale = 4.5f, Lifetime = 0.5f,  Tint = VfxTintMode.None,   Height = 1.4f },
+            new Pick { Id = VfxId.Explosion,         PrefabName = "ExplosionFireballFire",  Scale = 4.5f, Lifetime = 2.0f,  Tint = VfxTintMode.None,   Height = 0.8f },
+            new Pick { Id = VfxId.ExplosionRing,     PrefabName = "ExplosionNovaFire",      Scale = 4.0f, Lifetime = 1.6f,  Tint = VfxTintMode.None,   Height = 0.4f },
+            new Pick { Id = VfxId.ShieldBlock,       PrefabName = "ShieldSoftBlue",         Scale = 4.0f, Lifetime = 0.8f,  Tint = VfxTintMode.None,   Height = 1.0f },
+            new Pick { Id = VfxId.Kill,              PrefabName = "SoulExplosionCrimson",   Scale = 4.5f, Lifetime = 2.0f,  Tint = VfxTintMode.None,   Height = 0.8f },
+            new Pick { Id = VfxId.TextPow,           PrefabName = "Pow",                    Scale = 3.2f, Lifetime = 1.2f,  Tint = VfxTintMode.None,   Height = 2.6f },
+            new Pick { Id = VfxId.TextKapow,         PrefabName = "KaPow",                  Scale = 3.2f, Lifetime = 1.2f,  Tint = VfxTintMode.None,   Height = 2.6f },
+            new Pick { Id = VfxId.TextBoom,          PrefabName = "Boom",                   Scale = 4.0f, Lifetime = 1.4f,  Tint = VfxTintMode.None,   Height = 2.8f },
+            new Pick { Id = VfxId.TextCritical,      PrefabName = "Critical",               Scale = 4.0f, Lifetime = 1.4f,  Tint = VfxTintMode.None,   Height = 3.0f },
         };
 
         [MenuItem("CubeSim/Build VFX Library", priority = 13)]

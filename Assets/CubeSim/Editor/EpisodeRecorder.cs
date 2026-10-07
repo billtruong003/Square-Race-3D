@@ -103,8 +103,9 @@ namespace CubeSim.EditorTools
 
             _controller = new RecorderController(settings);
             _controller.PrepareRecording();
-            // The Game view's mute toggle must not reach the offline mix.
-            EditorUtility.audioMasterMute = false;
+            // The video's audio is mixed offline straight from the clip data (OfflineAudioTrack),
+            // never from the speakers, so the editor stays muted while filming.
+            EditorUtility.audioMasterMute = true;
             Time.timeScale = 1f;
             _controller.StartRecording();
             Debug.Log($"[CubeSim] Capture clock: captureFramerate={Time.captureFramerate} timeScale={Time.timeScale} fixedDt={Time.fixedDeltaTime:F4}");

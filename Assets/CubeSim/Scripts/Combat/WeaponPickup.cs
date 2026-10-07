@@ -32,6 +32,9 @@ namespace CubeSim.Combat
         /// <summary>True when nobody is holding it, whether or not it is collectable yet.</summary>
         public bool Available { get; private set; } = true;
 
+        /// <summary>Sim time after which a loose (non-pad) weapon vanishes; negative = never.</summary>
+        public float ExpiresAt = -1f;
+
         /// <summary>Who held it last. Blocked from re-collecting until the owner lock expires.</summary>
         public Racer LastOwner { get; private set; }
 
@@ -81,7 +84,16 @@ namespace CubeSim.Combat
         {
             Available = false;
             LastOwner = owner;
-            _root.gameObject.SetActive(false);
+            if (_root != null) _root.gameObject.SetActive(false);
+        }
+
+        /// <summary>Gone for good: the pad regrows a fresh one instead.</summary>
+        public void Remove()
+        {
+            Available = false;
+            if (_root == null) return;
+            if (Application.isPlaying) UnityEngine.Object.Destroy(_root.gameObject);
+            else UnityEngine.Object.DestroyImmediate(_root.gameObject);
         }
 
         public void Tick(float deltaTime)

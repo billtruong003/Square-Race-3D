@@ -310,6 +310,16 @@ MonoBehaviour:
       - {r: 0.55, g: 0.22, b: 0.95, a: 1}
       - {r: 0.95, g: 0.55, b: 0.72, a: 1}
       - {r: 0.72, g: 0.95, b: 0.3, a: 1}
+      - {r: 0.1, g: 0.9, b: 0.7, a: 1}
+      - {r: 0.95, g: 0.95, b: 0.95, a: 1}
+      - {r: 0.12, g: 0.16, b: 0.62, a: 1}
+      - {r: 0.58, g: 0.36, b: 0.18, a: 1}
+      - {r: 0.9, g: 0.7, b: 0.1, a: 1}
+      - {r: 0.55, g: 0.98, b: 0.75, a: 1}
+      - {r: 0.45, g: 0.72, b: 1, a: 1}
+      - {r: 0.62, g: 0.08, b: 0.25, a: 1}
+      - {r: 0.55, g: 0.62, b: 0.14, a: 1}
+      - {r: 0.75, g: 0.62, b: 1, a: 1}
       post:
         enabled: 1
         bloom: 1
@@ -368,6 +378,11 @@ MonoBehaviour:
       lootBomb: 20
       lootBoostSeconds: 5
       lootBoostScale: 1.6
+      arenaMaxWeapons: 4
+      arenaDropInterval: 6
+      arenaDropWarning: 1.2
+      arenaDropEdgeMargin: 3
+      arenaDropTable: []
       paintTileSize: 1.42
   visualLibrary: {fileID: 11400000, guid: 3223433713cb44746b92520ba84f13fc, type: 2}
   arenaLibrary: {fileID: 11400000, guid: 1fadccc17a8758d48acd13b9d08d6fcb, type: 2}
@@ -410,14 +425,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Core.EpisodeDirector
   rounds:
   - arenaId: LB01
-    seed: 344436
+    seed: 135973
     winCondition: 0
     maxDuration: 300
-    pressureTargetInset: 29
+    pressureTargetInset: 33
     pressureStartDelay: 15
     pressureSpeed: 0.5
     pressureProfile: 4
-    pressureTargetInsetZ: 15
+    pressureTargetInsetZ: 16
     maxHealth: 2
     weaponCount: 0
     racerCount: 12
@@ -430,14 +445,14 @@ MonoBehaviour:
     eliminateCount: 0
     grandPrix: 0
   - arenaId: LB02
-    seed: 478490
+    seed: 923555
     winCondition: 0
     maxDuration: 300
-    pressureTargetInset: 29
+    pressureTargetInset: 33
     pressureStartDelay: 15
     pressureSpeed: 0.5
     pressureProfile: 4
-    pressureTargetInsetZ: 15
+    pressureTargetInsetZ: 16
     maxHealth: 2
     weaponCount: 0
     racerCount: 12
@@ -450,14 +465,14 @@ MonoBehaviour:
     eliminateCount: 0
     grandPrix: 0
   - arenaId: LB03
-    seed: 323830
+    seed: 621178
     winCondition: 0
     maxDuration: 300
-    pressureTargetInset: 29
+    pressureTargetInset: 33
     pressureStartDelay: 15
     pressureSpeed: 0.5
     pressureProfile: 4
-    pressureTargetInsetZ: 15
+    pressureTargetInsetZ: 16
     maxHealth: 2
     weaponCount: 0
     racerCount: 12
@@ -470,14 +485,14 @@ MonoBehaviour:
     eliminateCount: 0
     grandPrix: 0
   - arenaId: LB04
-    seed: 649366
+    seed: 114119
     winCondition: 0
     maxDuration: 300
-    pressureTargetInset: 29
+    pressureTargetInset: 33
     pressureStartDelay: 15
     pressureSpeed: 0.5
     pressureProfile: 4
-    pressureTargetInsetZ: 15
+    pressureTargetInsetZ: 16
     maxHealth: 2
     weaponCount: 0
     racerCount: 12
@@ -490,14 +505,14 @@ MonoBehaviour:
     eliminateCount: 0
     grandPrix: 0
   - arenaId: LB05
-    seed: 961760
+    seed: 339573
     winCondition: 0
     maxDuration: 300
-    pressureTargetInset: 29
+    pressureTargetInset: 33
     pressureStartDelay: 15
     pressureSpeed: 0.5
     pressureProfile: 4
-    pressureTargetInsetZ: 15
+    pressureTargetInsetZ: 16
     maxHealth: 2
     weaponCount: 0
     racerCount: 12
@@ -510,14 +525,14 @@ MonoBehaviour:
     eliminateCount: 0
     grandPrix: 0
   - arenaId: LB06
-    seed: 816158
+    seed: 521105
     winCondition: 0
     maxDuration: 300
-    pressureTargetInset: 29
+    pressureTargetInset: 33
     pressureStartDelay: 15
     pressureSpeed: 0.5
     pressureProfile: 4
-    pressureTargetInsetZ: 15
+    pressureTargetInsetZ: 16
     maxHealth: 2
     weaponCount: 0
     racerCount: 12
@@ -530,14 +545,14 @@ MonoBehaviour:
     eliminateCount: 0
     grandPrix: 0
   - arenaId: LB07
-    seed: 294155
+    seed: 736272
     winCondition: 0
     maxDuration: 300
-    pressureTargetInset: 29
+    pressureTargetInset: 33
     pressureStartDelay: 15
     pressureSpeed: 0.5
     pressureProfile: 4
-    pressureTargetInsetZ: 15
+    pressureTargetInsetZ: 16
     maxHealth: 2
     weaponCount: 0
     racerCount: 12
@@ -550,14 +565,14 @@ MonoBehaviour:
     eliminateCount: 0
     grandPrix: 0
   - arenaId: LB08
-    seed: 958385
+    seed: 409460
     winCondition: 0
     maxDuration: 300
-    pressureTargetInset: 29
+    pressureTargetInset: 33
     pressureStartDelay: 15
     pressureSpeed: 0.5
     pressureProfile: 4
-    pressureTargetInsetZ: 15
+    pressureTargetInsetZ: 16
     maxHealth: 2
     weaponCount: 0
     racerCount: 12

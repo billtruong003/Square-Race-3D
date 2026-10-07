@@ -38,6 +38,12 @@ namespace CubeSim.Racers
             new Anchor("WHITE",   0.95f, 0.95f, 0.95f),
             new Anchor("GRAY",    0.50f, 0.50f, 0.50f),
             new Anchor("BLACK",   0.12f, 0.12f, 0.12f),
+            new Anchor("GOLD", 0.90f, 0.70f, 0.10f),
+            new Anchor("MINT", 0.55f, 0.98f, 0.75f),
+            new Anchor("SKY", 0.45f, 0.72f, 1.00f),
+            new Anchor("MAROON", 0.62f, 0.08f, 0.25f),
+            new Anchor("OLIVE", 0.55f, 0.62f, 0.14f),
+            new Anchor("LAVENDER", 0.75f, 0.62f, 1.00f),
         };
 
         public static string NameFor(Color color)

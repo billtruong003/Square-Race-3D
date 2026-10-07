@@ -67,6 +67,7 @@ namespace CubeSim.Arena
             go.GetComponent<MeshRenderer>().sharedMaterial = materials.Pressure;
 
             _collider = go.GetComponent<BoxCollider>();
+            _renderer = go.GetComponent<MeshRenderer>();
             _transform = go.transform;
             _transform.SetParent(parent, false);
 
@@ -75,9 +76,14 @@ namespace CubeSim.Arena
         }
 
         /// <summary>Deterministic advance: position depends only on elapsed run time.</summary>
+        private MeshRenderer _renderer;
+
         public void Tick(float elapsedTime)
         {
             float active = elapsedTime - _config.startDelay;
+            // Invisible until it starts closing: a parked slab was a fat yellow frame eating a
+            // third of the shot before anything happened.
+            if (_renderer != null) _renderer.enabled = active > 0f;
             float inset = active <= 0f
                 ? _config.startInset
                 : _config.startInset + _config.speed * active;
@@ -92,18 +98,31 @@ namespace CubeSim.Arena
         /// inset (rather than a fixed depth reaching far past the arena) keeps it from poking outside
         /// the border wall, where it intersected the wall shell and produced torn edges.
         /// </summary>
+        /// <summary>Visible depth of the slab. Only the edge is drawn; a fully swept slab was a screen-wide glowing block.</summary>
+        private const float EdgeDepth = 1.6f;
+
         private void ApplyTransform()
         {
             float span = Mathf.Max(0.02f, Inset + _overhang);
-            float center = Boundary - InsideSign * span * 0.5f;
+            float visual = Mathf.Min(span, EdgeDepth);
+            float center = Boundary - InsideSign * visual * 0.5f;
 
             _transform.localPosition = Axis == 0
                 ? new Vector3(center, _groundY + _height * 0.5f, 0f)
                 : new Vector3(0f, _groundY + _height * 0.5f, center);
 
             _transform.localScale = Axis == 0
-                ? new Vector3(span, _height, _crossSize)
-                : new Vector3(_crossSize, _height, span);
+                ? new Vector3(visual, _height, _crossSize)
+                : new Vector3(_crossSize, _height, visual);
+
+            // The collider still covers everything the slab has swept, in the cube's local units.
+            if (_collider != null)
+            {
+                float ratio = span / visual;
+                float shift = -InsideSign * (span - visual) * 0.5f / visual;
+                _collider.size = Axis == 0 ? new Vector3(ratio, 1f, 1f) : new Vector3(1f, 1f, ratio);
+                _collider.center = Axis == 0 ? new Vector3(shift, 0f, 0f) : new Vector3(0f, 0f, shift);
+            }
         }
 
         /// <summary>How deep a box of the given half extent reaches into this slab. Negative = clear.</summary>

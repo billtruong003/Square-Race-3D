@@ -35,7 +35,10 @@ namespace CubeSim.EditorTools
         [MenuItem("CubeSim/Record Shorts", priority = 30)]
         public static void StartShorts() => StartFolder(ShortsPlanBuilder.SceneFolder);
 
-        private static void StartFolder(string folder)
+        [MenuItem("CubeSim/Arena/Record 10 Tournament Videos", priority = 25)]
+        public static void StartArenaBatch() => StartFolder(ArenaTournamentBuilder.BatchFolder);
+
+        public static void StartFolder(string folder)
         {
             if (!Directory.Exists(folder))
             {

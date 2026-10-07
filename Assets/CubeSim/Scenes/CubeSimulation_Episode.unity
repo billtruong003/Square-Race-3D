@@ -259,6 +259,7 @@ MonoBehaviour:
       racerCollisionSkin: 0.02
       racerCollisionIterations: 3
       explicitRacers: []
+      paletteIndices: 
     pressure:
       enabled: 1
       mode: 0
@@ -309,6 +310,16 @@ MonoBehaviour:
       - {r: 0.55, g: 0.22, b: 0.95, a: 1}
       - {r: 0.95, g: 0.55, b: 0.72, a: 1}
       - {r: 0.72, g: 0.95, b: 0.3, a: 1}
+      - {r: 0.1, g: 0.9, b: 0.7, a: 1}
+      - {r: 0.95, g: 0.95, b: 0.95, a: 1}
+      - {r: 0.12, g: 0.16, b: 0.62, a: 1}
+      - {r: 0.58, g: 0.36, b: 0.18, a: 1}
+      - {r: 0.9, g: 0.7, b: 0.1, a: 1}
+      - {r: 0.55, g: 0.98, b: 0.75, a: 1}
+      - {r: 0.45, g: 0.72, b: 1, a: 1}
+      - {r: 0.62, g: 0.08, b: 0.25, a: 1}
+      - {r: 0.55, g: 0.62, b: 0.14, a: 1}
+      - {r: 0.75, g: 0.62, b: 1, a: 1}
       post:
         enabled: 1
         bloom: 1
@@ -336,6 +347,7 @@ MonoBehaviour:
       margin: 1.08
       heightOverride: 0
       leftReserve: 0
+      topReserve: 0
       backgroundColor: {r: 0.09, g: 0.09, b: 0.1, a: 1}
     endRules:
       winCondition: 0
@@ -344,6 +356,34 @@ MonoBehaviour:
       resultHoldTime: 3
       advanceSeedOnLoop: 1
       requiredFinishers: 1
+      eliminateCount: 0
+    mode:
+      kind: 0
+      ruleLabel: 
+      infectionStart: 4
+      infectedSpeedScale: 1.08
+      infectionIncubation: 3
+      infectionBiteCooldown: 3
+      infectionBitesToTurn: 2
+      bombFuse: 6
+      bombRespawnDelay: 2
+      bombBlastRadius: 3
+      bombBlastDamage: 1
+      bombPassLockout: 1
+      bombHolderSpeedScale: 1.3
+      lootKnife: 30
+      lootPotion: 20
+      lootShield: 15
+      lootBoost: 15
+      lootBomb: 20
+      lootBoostSeconds: 5
+      lootBoostScale: 1.6
+      arenaMaxWeapons: 4
+      arenaDropInterval: 6
+      arenaDropWarning: 1.2
+      arenaDropEdgeMargin: 3
+      arenaDropTable: []
+      paintTileSize: 1.42
   visualLibrary: {fileID: 11400000, guid: 3223433713cb44746b92520ba84f13fc, type: 2}
   arenaLibrary: {fileID: 11400000, guid: 1fadccc17a8758d48acd13b9d08d6fcb, type: 2}
   weaponLibrary: {fileID: 11400000, guid: b438abec90810064c9f21574e860178c, type: 2}
@@ -397,6 +437,15 @@ MonoBehaviour:
     weaponCount: -1
     racerCount: 0
     teamCount: 0
+    portrait: 0
+    requiredFinishers: 0
+    modeKind: 0
+    ruleLabel: 
+    paletteIndices: 
+    eliminateCount: 0
+    grandPrix: 0
+    finalOfWinners: 0
+    racerSpeed: 0
   - arenaId: Arena5v5
     seed: 90202
     winCondition: 0
@@ -410,6 +459,15 @@ MonoBehaviour:
     weaponCount: -1
     racerCount: 0
     teamCount: 0
+    portrait: 0
+    requiredFinishers: 0
+    modeKind: 0
+    ruleLabel: 
+    paletteIndices: 
+    eliminateCount: 0
+    grandPrix: 0
+    finalOfWinners: 0
+    racerSpeed: 0
   - arenaId: BlockBreak
     seed: 90303
     winCondition: 1
@@ -423,6 +481,15 @@ MonoBehaviour:
     weaponCount: -1
     racerCount: 0
     teamCount: 0
+    portrait: 0
+    requiredFinishers: 0
+    modeKind: 0
+    ruleLabel: 
+    paletteIndices: 
+    eliminateCount: 0
+    grandPrix: 0
+    finalOfWinners: 0
+    racerSpeed: 0
   introDuration: 3.5
   roundCardDuration: 2.2
   winnerCardDuration: 3

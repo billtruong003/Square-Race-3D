@@ -38,6 +38,14 @@ namespace CubeSim.Racers
         private Renderer[] _modelRenderers;
         private MaterialPropertyBlock _block;
         private Color _color = Color.white;
+        private float _emission;
+        private float _flashLeft = -1f;
+        private float _launchLeft = -1f;
+        private Vector3 _launchDir;
+        private float _launchMetres;
+        private Vector3 _modelBasePos;
+        private Quaternion _modelBaseRot;
+        private const float LaunchSeconds = 0.32f;
 
         public Transform Model => model;
         public Transform WeaponSocket => weaponSocket;
@@ -86,6 +94,13 @@ namespace CubeSim.Racers
         public void SetColor(Color color, float emission, bool tintModel)
         {
             _color = color;
+            _emission = emission;
+            Tint(color, emission, tintModel);
+            _trail?.SetColor(color);
+        }
+
+        private void Tint(Color color, float emission, bool tintModel)
+        {
 
             if (_modelRenderers == null && model != null) _modelRenderers = model.GetComponentsInChildren<Renderer>();
             _block ??= new MaterialPropertyBlock();
@@ -95,7 +110,7 @@ namespace CubeSim.Racers
                 for (int i = 0; i < _modelRenderers.Length; i++)
                 {
                     Renderer renderer = _modelRenderers[i];
-                    if (renderer == null) continue;
+                    if (renderer == null || (_eyes != null && _eyes.IsEyeRenderer(renderer))) continue;
 
                     renderer.GetPropertyBlock(_block);
                     _block.SetColor(BaseColorId, color);
@@ -103,8 +118,57 @@ namespace CubeSim.Racers
                     renderer.SetPropertyBlock(_block);
                 }
             }
+        }
 
-            _trail?.SetColor(color);
+        /// <summary>A white hit flash: the cube blinks for a few frames, then its colour returns.</summary>
+        public void Flash(float seconds)
+        {
+            if (_dead) return;
+            _flashLeft = seconds;
+            Tint(Color.white, 3f, true);
+        }
+
+        /// <summary>
+        /// A knockback pop: the model hops and tumbles along the hit direction for a third of a
+        /// second while the simulation slides the body. Cosmetic; the sim position is untouched.
+        /// </summary>
+        public void Launch(Vector3 direction, float metres)
+        {
+            if (_dead || model == null) return;
+            if (_launchLeft < 0f) { _modelBasePos = model.localPosition; _modelBaseRot = model.localRotation; }
+            _launchLeft = LaunchSeconds;
+            _launchDir = direction.sqrMagnitude > 1e-6f ? direction.normalized : Vector3.forward;
+            _launchMetres = metres;
+        }
+
+        private void TickJuice(float deltaTime)
+        {
+            if (_flashLeft >= 0f)
+            {
+                _flashLeft -= deltaTime;
+                if (_flashLeft < 0f) Tint(_color, _emission, true);
+            }
+
+            if (_launchLeft >= 0f && model != null)
+            {
+                _launchLeft -= deltaTime;
+                if (_launchLeft < 0f)
+                {
+                    model.localPosition = _modelBasePos;
+                    model.localRotation = _modelBaseRot;
+                }
+                else
+                {
+                    float t = 1f - _launchLeft / LaunchSeconds;
+                    float height = Mathf.Clamp(_launchMetres * 0.22f, 0.35f, 2.2f) * Mathf.Sin(t * Mathf.PI);
+                    // Big shoves tumble a full turn; small ones just rock.
+                    float angle = _launchMetres >= 5f ? 360f * t : 35f * Mathf.Sin(t * Mathf.PI);
+                    Vector3 axis = Vector3.Cross(Vector3.up, _launchDir);
+                    Vector3 localAxis = model.parent != null ? model.parent.InverseTransformDirection(axis) : axis;
+                    model.localPosition = _modelBasePos + Vector3.up * height;
+                    model.localRotation = Quaternion.AngleAxis(angle, localAxis) * _modelBaseRot;
+                }
+            }
         }
 
         /// <summary>Feeds the trail from the simulation position. Cosmetic; never writes back.</summary>
@@ -172,9 +236,15 @@ namespace CubeSim.Racers
             if (animator != null) animator.SetTrigger(CelebrateTrigger);
         }
 
+        public void PlayHurt()
+        {
+            if (!_dead) _eyes?.ShowHurt();
+        }
+
         public void PlayDeath()
         {
             _dead = true;
+            _eyes?.ShowDead();
             DetachWeapon();
             _trail?.Stop();
 
@@ -192,6 +262,7 @@ namespace CubeSim.Racers
 
         private void Update()
         {
+            TickJuice(Time.deltaTime);
             if (_deathTipTimer < 0f || model == null) return;
 
             _deathTipTimer += Time.deltaTime;

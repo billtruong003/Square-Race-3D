@@ -112,6 +112,12 @@ namespace CubeSim.Racers
         /// <summary>Which palette slot this racer wears; stable across rounds that drop racers.</summary>
         public int PaletteIndex = -1;
 
+        /// <summary>Orbit/front weapons: current blade heading in degrees (sim state, drives the visual).</summary>
+        public float WeaponAngle;
+        public Racer AimTarget;
+        public float AimRemaining;
+        public float StaggerUntil;
+
         public bool Armed => Weapon != null;
 
         /// <summary>Alive and still racing - not retired in a goal.</summary>

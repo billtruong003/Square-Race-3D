@@ -43,7 +43,18 @@ namespace CubeSim.Visuals
             new Color(0.20f, 0.90f, 0.92f), // cyan
             new Color(0.55f, 0.22f, 0.95f), // violet
             new Color(0.95f, 0.55f, 0.72f), // pink
-            new Color(0.72f, 0.95f, 0.30f)  // lime
+            new Color(0.72f, 0.95f, 0.30f), // lime
+            new Color(0.10f, 0.90f, 0.70f), // teal
+            new Color(0.95f, 0.95f, 0.95f), // white
+            // Slots 12-19: a 20-cube tournament needs twenty faces that do not repeat.
+            new Color(0.12f, 0.16f, 0.62f), // navy
+            new Color(0.58f, 0.36f, 0.18f), // brown
+            new Color(0.90f, 0.70f, 0.10f), // gold
+            new Color(0.55f, 0.98f, 0.75f), // mint
+            new Color(0.45f, 0.72f, 1.00f), // sky
+            new Color(0.62f, 0.08f, 0.25f), // maroon
+            new Color(0.55f, 0.62f, 0.14f), // olive
+            new Color(0.75f, 0.62f, 1.00f) // lavender
         };
 
         [Tooltip("Camera finishing: bloom, tonemapping, vignette.")]
@@ -51,8 +62,10 @@ namespace CubeSim.Visuals
 
         [Header("Lighting")]
         public Color ambientColor = new Color(0.20f, 0.20f, 0.24f, 1f);
-        public Color lightColor = new Color(1f, 0.97f, 0.92f, 1f);
+        public Color lightColor = Color.white;
         [Range(0f, 4f)] public float lightIntensity = 1.05f;
+        [Tooltip("Directional shadow strength. Light shadows: the floor stays readable under a pile of weapons.")]
+        [Range(0f, 1f)] public float shadowStrength = 0.35f;
         public Vector3 lightEuler = new Vector3(62f, 24f, 0f);
     }
 }

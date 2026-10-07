@@ -10,6 +10,14 @@ namespace CubeSim.Arena.Authored
 
         public float Weight => Mathf.Max(0f, weight);
 
+        [Tooltip("Weapon Arena pad: the weapon id this pad grows. Empty = free-choice area (legacy).")]
+        [SerializeField] private string weaponId = "";
+        [SerializeField] private float respawnSeconds = 6f;
+
+        public string WeaponId => weaponId;
+        public float RespawnSeconds => Mathf.Max(0.5f, respawnSeconds);
+        public void ConfigurePad(string id, float respawn) { weaponId = id; respawnSeconds = respawn; }
+
         protected override Color GizmoColor => new Color(1f, 0.85f, 0.2f, 0.9f);
     }
 }

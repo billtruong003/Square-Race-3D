@@ -50,6 +50,10 @@ namespace CubeSim.Racers
         private Transform _cap;
         private MeshRenderer _capRenderer;
 
+        /// <summary>The ribbon and its root cap, for passes that must treat the trail as part of the racer.</summary>
+        public MeshRenderer Renderer => _renderer;
+        public MeshRenderer CapRenderer => _capRenderer;
+
         public static RacerTrail Create(Transform parent, TrailSettings settings, Material material,
             Color color, float racerSize, int layer)
         {

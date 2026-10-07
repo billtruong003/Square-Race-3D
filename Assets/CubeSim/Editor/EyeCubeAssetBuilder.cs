@@ -62,7 +62,9 @@ namespace CubeSim.EditorTools
                     AssetDatabase.LoadAssetAtPath<Texture2D>(NorthEastTexture),
                     AssetDatabase.LoadAssetAtPath<Texture2D>(NorthWestTexture),
                     AssetDatabase.LoadAssetAtPath<Texture2D>(SouthEastTexture),
-                    AssetDatabase.LoadAssetAtPath<Texture2D>(SouthWestTexture));
+                    AssetDatabase.LoadAssetAtPath<Texture2D>(SouthWestTexture),
+                    AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Eyes/Eyes_Hurt.png"),
+                    AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Eyes/Eyes_Dead.png"));
 
                 PrefabUtility.SaveAsPrefabAsset(root, WrapperPath);
             }

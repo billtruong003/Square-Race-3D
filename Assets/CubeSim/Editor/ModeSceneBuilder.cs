@@ -32,8 +32,8 @@ namespace CubeSim.EditorTools
             public EpisodeDirector.PressureProfile Pressure = EpisodeDirector.PressureProfile.Collapse;
             public float PressureDelay = 20f;
             public float PressureSpeed = 0.4f;
-            public float InsetX = 29f;
-            public float InsetZ = 15f;
+            public float InsetX = 33f;
+            public float InsetZ = 16f;
             public int[] Eliminate;        // per round; null = not a knockout
             public bool GrandPrix;
         }

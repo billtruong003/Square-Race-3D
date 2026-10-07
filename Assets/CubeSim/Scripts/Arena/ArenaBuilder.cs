@@ -184,8 +184,11 @@ namespace CubeSim.Arena
             floor.transform.SetParent(parent, false);
             floor.transform.localPosition = new Vector3(bounds.center.x, groundY - thickness * 0.5f, bounds.center.y);
             floor.transform.localScale = new Vector3(bounds.width, thickness, bounds.height);
-            floor.GetComponent<MeshRenderer>().sharedMaterial = materials.Floor;
+            var floorRenderer = floor.GetComponent<MeshRenderer>();
+            floorRenderer.sharedMaterial = materials.Floor;
+
         }
+
 
         private static void AddBorderWalls(ArenaDefinition d, List<Rect> rects)
         {

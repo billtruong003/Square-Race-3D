@@ -11,6 +11,7 @@ Shader "CubeSim/SilhouetteOutline"
         [HDR] _OutlineColor ("Outline Colour", Color) = (1.8, 0.03, 0.03, 1)
         _HullCenter        ("Bounds Centre (object space)", Vector) = (0, 0, 0, 0)
         _HullFactor        ("Expansion Factor per axis", Vector) = (1.1, 1.1, 1.1, 0)
+        _OutlineWidth      ("Normal extrusion, world metres (multi-part models)", Float) = 0
     }
 
     SubShader
@@ -40,16 +41,23 @@ Shader "CubeSim/SilhouetteOutline"
                 float4 _OutlineColor;
                 float4 _HullCenter;
                 float4 _HullFactor;
+                float _OutlineWidth;
             CBUFFER_END
 
-            struct Attributes { float4 positionOS : POSITION; };
+            struct Attributes { float4 positionOS : POSITION; float3 normalOS : NORMAL; };
             struct Varyings   { float4 positionHCS : SV_POSITION; };
 
             Varyings vert(Attributes v)
             {
                 Varyings o;
+                // Two ways to grow: scale about the bounds centre (hard-edged single meshes such
+                // as the cube body) or push along the smoothed vertex normal in world metres (a
+                // gun built from many parts, where per-part scaling smeared the rim off the barrel).
                 float3 p = _HullCenter.xyz + (v.positionOS.xyz - _HullCenter.xyz) * _HullFactor.xyz;
-                o.positionHCS = TransformObjectToHClip(p);
+                float3 posWS = TransformObjectToWorld(p);
+                float3 nWS = normalize(TransformObjectToWorldNormal(v.normalOS));
+                posWS += nWS * _OutlineWidth;
+                o.positionHCS = TransformWorldToHClip(posWS);
                 return o;
             }
 

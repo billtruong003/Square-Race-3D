@@ -93,9 +93,22 @@ namespace CubeSim.Racers
         }
 
         /// <summary>Places the anchor for this step. Called from the visual, never from the mover.</summary>
+        /// <summary>Orbit/front weapons: the sim owns the heading; the anchor just shows it.</summary>
+        public bool OrbitMode;
+        public float OrbitAngle;
+        public float OrbitRadius = 1.2f;
+
         public void Follow(Vector3 direction, float deltaTime)
         {
             if (_held == null) return;
+
+            if (OrbitMode)
+            {
+                Quaternion heading = Quaternion.Euler(0f, OrbitAngle, 0f);
+                transform.localPosition = heading * Vector3.forward * OrbitRadius + Vector3.up * (_settings.heightOffset * _racerSize - _racerSize * 0.5f);
+                transform.rotation = heading;
+                return;
+            }
 
             if (direction.sqrMagnitude > 1e-6f)
             {

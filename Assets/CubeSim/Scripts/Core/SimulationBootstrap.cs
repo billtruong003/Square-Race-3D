@@ -72,6 +72,7 @@ namespace CubeSim.Core
         private VfxSystem _vfx;
         private SimAudioSystem _audio;
         private DamagePopupSystem _popups;
+        private HealthBarSystem _healthBars;
         private LeaderboardOverlay _leaderboard;
         private bool _resultLogged;
         private float _resultHoldTimer;
@@ -129,11 +130,17 @@ namespace CubeSim.Core
             _vfx?.Tick(Time.deltaTime);
             _audio?.Tick(Time.deltaTime, _runner?.AliveCount ?? 0);
             _popups?.Tick(Time.deltaTime);
+            _healthBars?.Tick(Time.deltaTime);
+            _juice?.Tick(Time.deltaTime);
         }
+
+        private Visuals.CombatJuice _juice;
 
         private void FixedUpdate()
         {
             if (_runner == null || Paused) return;
+            // Hit-stop: the freeze frame on a big hit. The sim just waits; nothing is skipped.
+            if (_juice != null && _juice.ConsumeHitStop()) return;
 
             _runner.Step(Time.fixedDeltaTime);
 
@@ -212,6 +219,9 @@ namespace CubeSim.Core
 
             _vfx = new VfxSystem(vfxLibrary, _activeConfig.simulation.groundY, _sceneRoot);
             _popups = new DamagePopupSystem(_sceneRoot);
+            _healthBars = _activeConfig.racers.maxHealth > 6f
+                ? new HealthBarSystem(racers, _sceneRoot, targetCamera != null ? targetCamera : Camera.main)
+                : null;
             _audio = new SimAudioSystem(audioLibrary, _sceneRoot);
             _audio.Bind(racers);
             SubscribePresentation(combat, goals, breakableWalls);
@@ -365,6 +375,15 @@ namespace CubeSim.Core
                 // whole-heart hits sound and pop.
                 _runner.OnRacerDamaged += (victim, attacker, amount) =>
                 {
+                    if (victim.MaxHealth > 6f)
+                    {
+                        // HP scale: the number is the story. Big hits get the anime shout.
+                        bool critical = amount >= 50f;
+                        _popups?.Show(victim.Position, critical ? new Color(1f, 0.9f, 0.2f) : new Color(1f, 0.35f, 0.3f),
+                            critical ? $"CRITICAL -{Mathf.RoundToInt(amount)}" : $"-{Mathf.RoundToInt(amount)}", critical ? 1.5f : 1f);
+                        if (victim.Health > 0f) audio?.Play(SimSoundId.RacerHit);
+                        return;
+                    }
                     if (amount < 0.99f) return;
 
                     _popups?.Show(victim.Position, new Color(1f, 0.25f, 0.3f));
@@ -472,7 +491,10 @@ namespace CubeSim.Core
             _vfx = null;
             _audio = null;
             _popups = null;
+            _juice?.Dispose();
+            _juice = null;
             _leaderboard?.Bind(null);
+            _healthBars = null;
 
             if (_sceneRoot != null)
             {
@@ -536,6 +558,7 @@ namespace CubeSim.Core
 
             _light.color = theme.lightColor;
             _light.intensity = theme.lightIntensity;
+            _light.shadowStrength = theme.shadowStrength;
             _light.transform.rotation = Quaternion.Euler(theme.lightEuler);
         }
 
@@ -614,6 +637,31 @@ namespace CubeSim.Core
                         if (victim.Shield == 0) Visuals.ArmedOutline.Remove(victim);
                     };
                     _runner.AttachModes(null, null, null, loot);
+                    break;
+                }
+                case ModeKind.Arena:
+                {
+                    combat.EnableArena(mode, random);
+                    // Game feel lives only here: the older formats never see any of it.
+                    Camera juiceCamera = targetCamera != null ? targetCamera : Camera.main;
+                    Visuals.CameraShake shake = juiceCamera != null
+                        ? (juiceCamera.GetComponent<Visuals.CameraShake>() ?? juiceCamera.gameObject.AddComponent<Visuals.CameraShake>())
+                        : null;
+                    var lasers = new Visuals.LaserSightSystem(_sceneRoot, _activeConfig.simulation.groundY);
+                    _juice = new Visuals.CombatJuice(_vfx, _audio != null && _audio.Enabled ? _audio : null, _popups, shake, lasers);
+                    _juice.Attach(combat, _runner);
+                    combat.OnDropWarning += (at, weapon) => { _vfx?.Play(VfxId.WeaponDrop, at, Vector3.up, new Color(1f, 0.9f, 0.4f)); _audio?.Play(SimSoundId.SpikeWarn); };
+                    combat.OnDropLanded += (at, weapon) => { _vfx?.Play(VfxId.WallBreak, at, Vector3.up, new Color(0.9f, 0.9f, 0.9f)); _audio?.Play(SimSoundId.CrusherSlam); };
+                    combat.OnFuseTick += (holder, left) => { _popups?.Show(holder.Position, new Color(1f, 0.3f, 0.2f), left.ToString(), 1.6f); _audio?.Play(SimSoundId.SpikeWarn); };
+                    if (combat.Projectiles != null)
+                    {
+                        combat.Projectiles.OnBlast += (source, centre, radius) =>
+                        {
+                            _vfx?.Play(VfxId.CrushDeath, centre, Vector3.up, new Color(1f, 0.55f, 0.15f));
+                            _vfx?.Play(VfxId.WallBreak, centre, Vector3.up, new Color(1f, 0.7f, 0.2f));
+                            _audio?.Play(SimSoundId.CrusherSlam);
+                        };
+                    }
                     break;
                 }
                 case ModeKind.PaintWar:

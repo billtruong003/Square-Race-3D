@@ -28,6 +28,10 @@ namespace CubeSim.Racers
         [SerializeField] private Texture2D lookSouthEast;
         [SerializeField] private Texture2D lookSouthWest;
 
+        [SerializeField] private Texture2D hurt;
+        [SerializeField] private Texture2D dead;
+        [SerializeField, Min(0.05f)] private float hurtSeconds = 0.35f;
+
         /// <summary>Quadrant flips need to stick briefly, or near-axis movement strobes the eyes.</summary>
         private const float MinSwitchInterval = 0.12f;
 
@@ -35,9 +39,15 @@ namespace CubeSim.Racers
         private Texture2D _current;
         private float _lastSwitchTime;
         private bool _moving;
+        private bool _dead;
+        private float _hurtUntil;
+        private Texture2D _look;
+
+        public bool IsEyeRenderer(Renderer candidate) => candidate == eyeRenderer;
 
         public void Configure(Renderer eye, Texture2D idle,
-            Texture2D northEast, Texture2D northWest, Texture2D southEast, Texture2D southWest)
+            Texture2D northEast, Texture2D northWest, Texture2D southEast, Texture2D southWest,
+            Texture2D hurtTexture = null, Texture2D deadTexture = null)
         {
             eyeRenderer = eye;
             center = idle;
@@ -45,11 +55,39 @@ namespace CubeSim.Racers
             lookNorthWest = northWest;
             lookSouthEast = southEast;
             lookSouthWest = southWest;
+            hurt = hurtTexture;
+            dead = deadTexture;
         }
 
-        private void Start()
+        private void OnEnable()
         {
+            _dead = false;
+            _hurtUntil = 0f;
+            _moving = false;
+            _look = center;
+            _current = null;
             Apply(center, true);
+        }
+
+        public void ShowHurt()
+        {
+            if (_dead) return;
+            _hurtUntil = Time.time + hurtSeconds;
+            Apply(hurt, true);
+        }
+
+        public void ShowDead()
+        {
+            _dead = true;
+            _hurtUntil = 0f;
+            Apply(dead, true);
+        }
+
+        private void Update()
+        {
+            if (_dead || _hurtUntil <= 0f || Time.time < _hurtUntil) return;
+            _hurtUntil = 0f;
+            Apply(_moving ? _look : center, true);
         }
 
         /// <summary>Points the pupils along the movement direction. Called every visual frame.</summary>
@@ -62,14 +100,15 @@ namespace CubeSim.Racers
                 ? direction.z >= 0f ? lookNorthEast : lookSouthEast
                 : direction.z >= 0f ? lookNorthWest : lookSouthWest;
 
-            Apply(target, false);
+            _look = target;
+            if (!_dead && Time.time >= _hurtUntil) Apply(target, false);
         }
 
         /// <summary>Standing still returns the pupils to the centered stare.</summary>
         public void SetMoving(bool moving)
         {
             _moving = moving;
-            if (!moving) Apply(center, false);
+            if (!moving && !_dead && Time.time >= _hurtUntil) Apply(center, false);
         }
 
         private void Apply(Texture2D texture, bool force)

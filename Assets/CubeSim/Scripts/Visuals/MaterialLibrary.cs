@@ -41,6 +41,10 @@ namespace CubeSim.Visuals
             _shader = ResolveShader(theme.shaderName);
 
             Floor = Create("CubeSim_Floor", theme.floorColor, Color.black, 0f);
+            // Floor shading tuned by hand: a later, softer terminator so the bright floor keeps a
+            // clean two-tone read under the cubes instead of a hard black crescent.
+            if (Floor.HasProperty("_Threshold")) Floor.SetFloat("_Threshold", 0.6f);
+            if (Floor.HasProperty("_Smoothness")) Floor.SetFloat("_Smoothness", 0.15f);
             Wall = Create("CubeSim_Wall", theme.wallColor, Color.black, 0f);
             Pressure = Create("CubeSim_Pressure", theme.pressureColor, theme.pressureColor, theme.pressureEmission);
             Racer = Create("CubeSim_Racer", Color.white, Color.white, theme.racerEmission);

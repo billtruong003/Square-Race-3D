@@ -21,6 +21,7 @@ namespace CubeSim.Visuals
 
         private static readonly int HullCenterId = Shader.PropertyToID("_HullCenter");
         private static readonly int HullFactorId = Shader.PropertyToID("_HullFactor");
+        private static readonly int OutlineWidthId = Shader.PropertyToID("_OutlineWidth");
 
         private static Material _mask;
         private static Material _outline;
@@ -46,7 +47,7 @@ namespace CubeSim.Visuals
         /// <summary>Same rim, another colour: infection green, shield blue.</summary>
         public static void Apply(Racer racer, Color color)
         {
-            if (racer?.Visual == null || !Ready) return;
+            if (!Enabled || racer?.Visual == null || !Ready) return;
             if (!_tinted.TryGetValue(color, out Material material))
             {
                 material = new Material(_outline) { name = "CubeSim_Outline_" + ColorUtility.ToHtmlStringRGB(color) };
@@ -56,7 +57,13 @@ namespace CubeSim.Visuals
             Apply(racer, material);
         }
 
-        public static void Apply(Racer racer) { if (racer?.Visual == null || !Ready) return; Apply(racer, _outline); }
+        /// <summary>Master switch for the red armed rim. Off for review: the user finds it busy.</summary>
+        public static bool Enabled = true;
+
+        /// <summary>The stencil stamp, for cosmetics that must never get a rim drawn over them.</summary>
+        public static Material MaskMaterial => Ready ? _mask : null;
+
+        public static void Apply(Racer racer) { if (!Enabled || racer?.Visual == null || !Ready) return; Apply(racer, _outline); }
 
         private static void Apply(Racer racer, Material outline)
         {
@@ -64,11 +71,24 @@ namespace CubeSim.Visuals
 
             var targets = new List<Renderer>();
             if (racer.Visual.Model != null) targets.AddRange(racer.Visual.Model.GetComponentsInChildren<Renderer>());
+            for (int i = 0; i < targets.Count; i++) Attach(targets[i], outline, false);
 
+            // The weapon itself gets no rim (it read as clutter); it only masks so the body's
+            // rim does not paint across it.
             Transform held = racer.Visual.Anchor != null ? racer.Visual.Anchor.Held : null;
-            if (held != null) targets.AddRange(held.GetComponentsInChildren<Renderer>(true));
+            if (held != null)
+            {
+                var parts = held.GetComponentsInChildren<Renderer>(true);
+                for (int i = 0; i < parts.Length; i++) { AttachMask(parts[i]); targets.Add(parts[i]); }
+            }
 
-            for (int i = 0; i < targets.Count; i++) Attach(targets[i], outline);
+            // The trail streams out of the cube's body: stamp it into the stencil too, so the rim
+            // stops where the ribbon begins instead of being painted over it.
+            if (racer.Visual.Trail != null)
+            {
+                if (racer.Visual.Trail.Renderer != null) { AttachMask(racer.Visual.Trail.Renderer); targets.Add(racer.Visual.Trail.Renderer); }
+                if (racer.Visual.Trail.CapRenderer != null) { AttachMask(racer.Visual.Trail.CapRenderer); targets.Add(racer.Visual.Trail.CapRenderer); }
+            }
             _applied[racer] = targets;
         }
 
@@ -90,7 +110,19 @@ namespace CubeSim.Visuals
 
         private static bool IsOutline(Material m) => m == _outline || (m != null && m.shader == _outline.shader);
 
-        private static void Attach(Renderer renderer, Material outline)
+        /// <summary>Mask only: the renderer blocks the rim but draws no rim of its own.</summary>
+        private static void AttachMask(Renderer renderer)
+        {
+            if (renderer == null || renderer is ParticleSystemRenderer || renderer is TrailRenderer || renderer is LineRenderer) return;
+            Material[] current = renderer.sharedMaterials;
+            for (int i = 0; i < current.Length; i++) if (current[i] == _mask) return;
+            var next = new Material[current.Length + 1];
+            current.CopyTo(next, 0);
+            next[current.Length] = _mask;
+            renderer.sharedMaterials = next;
+        }
+
+        private static void Attach(Renderer renderer, Material outline, bool weapon)
         {
             Mesh mesh = MeshOf(renderer);
             if (mesh == null || renderer is TrailRenderer || renderer is LineRenderer || renderer is ParticleSystemRenderer) return;
@@ -106,19 +138,32 @@ namespace CubeSim.Visuals
 
             Bounds b = mesh.bounds;
             Vector3 scale = renderer.transform.lossyScale;
+            if (weapon)
+            {
+                // A gun is dozens of parts; scaling each about its own centre smeared the rim off
+                // the barrel. Push along the (smoothed) normals instead: one even rim, no offset.
+                renderer.GetPropertyBlock(_block);
+                _block.SetVector(HullCenterId, b.center);
+                _block.SetVector(HullFactorId, new Vector4(1f, 1f, 1f, 0f));
+                _block.SetFloat(OutlineWidthId, WidthMetres * 0.9f);
+                renderer.SetPropertyBlock(_block);
+                return;
+            }
             var factor = new Vector4(
                 Factor(b.extents.x, scale.x), Factor(b.extents.y, scale.y), Factor(b.extents.z, scale.z), 0f);
 
             renderer.GetPropertyBlock(_block);
             _block.SetVector(HullCenterId, b.center);
             _block.SetVector(HullFactorId, factor);
+            _block.SetFloat(OutlineWidthId, 0f);
             renderer.SetPropertyBlock(_block);
         }
 
         private static float Factor(float extent, float scale)
         {
             float world = Mathf.Abs(extent * scale);
-            return world < 1e-4f ? 1f : 1f + WidthMetres / world;
+            // A thin barrel must not grow into a slab: cap the growth so the outline hugs the shape.
+            return world < 1e-4f ? 1f : Mathf.Min(1f + WidthMetres / world, 1.6f);
         }
 
         private static void Detach(Renderer renderer)

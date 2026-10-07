@@ -82,6 +82,18 @@ namespace CubeSim.Core
 
             [Tooltip("Grand Prix: award 10-8-6-5-4-3-2-1 by finish order and carry a standings table across rounds.")]
             public bool grandPrix = false;
+
+            [Tooltip("Tournament final: the field is the winners of every earlier round (paletteIndices ignored).")]
+            public bool finalOfWinners = false;
+
+            [Tooltip("Racer speed in m/s for this round. 0 keeps the config (Arena rounds run slow so the weapons read).")]
+            public float racerSpeed = 0f;
+
+            [Tooltip("Floor tint for this round (alpha 0 keeps the theme). Gives each arena its own look.")]
+            public Color floorColor = new Color(0f, 0f, 0f, 0f);
+
+            [Tooltip("Wall tint for this round (alpha 0 keeps the theme).")]
+            public Color wallColor = new Color(0f, 0f, 0f, 0f);
         }
 
         /// <summary>The squeeze's job on a given map. See RoundSpec.pressureProfile.</summary>
@@ -115,6 +127,14 @@ namespace CubeSim.Core
         private SimulationBootstrap _bootstrap;
         private EpisodeCardOverlay _cards;
         private readonly List<Color> _roundWinners = new List<Color>();
+        /// <summary>Palette slots of each round's winner, in order: the tournament bracket reads this.</summary>
+        private readonly List<int> _winnerSlots = new List<int>();
+        private BracketOverlay _bracket;
+        private ArenaTelemetry _telemetry;
+        private int _groupsPlayed;
+        public IReadOnlyList<int> WinnerSlots => _winnerSlots;
+        public IReadOnlyDictionary<int, Color> SlotColors => _slotColors;
+        public IReadOnlyDictionary<int, string> SlotNames => _slotNames;
 
         // Knockout / points state, keyed by palette slot so identities survive across rounds.
         private List<int> _activeSlots;
@@ -151,6 +171,24 @@ namespace CubeSim.Core
                 yield break;
             }
 
+            // A tournament (group rounds feeding a final) keeps its bracket on screen all episode.
+            if (rounds.Exists(r => r.finalOfWinners))
+            {
+                SimulationConfig template = _bootstrap.ResolveConfigTemplate();
+                List<Color> palette = template.visuals.palette;
+                var groups = new List<IReadOnlyList<(int slot, Color color)>>();
+                foreach (RoundSpec r in rounds)
+                {
+                    if (r.finalOfWinners || r.paletteIndices == null || r.paletteIndices.Count == 0) continue;
+                    var group = new List<(int, Color)>();
+                    foreach (int slot in r.paletteIndices)
+                        group.Add((slot, palette.Count > 0 ? palette[slot % palette.Count] : Color.white));
+                    groups.Add(group);
+                }
+                _bracket = BracketOverlay.Create(transform);
+                _bracket.Setup(groups, groups.Count);
+            }
+
             for (int i = 0; i < rounds.Count; i++)
             {
                 CurrentRound = i + 1;
@@ -170,6 +208,13 @@ namespace CubeSim.Core
                     round.paletteIndices = new List<int>(_activeSlots);
                     round.requiredFinishers = Mathf.Max(1, _activeSlots.Count - round.eliminateCount);
                 }
+                if (round.finalOfWinners && _winnerSlots.Count > 0)
+                {
+                    round.paletteIndices = new List<int>(_winnerSlots);
+                }
+                if (round.racerSpeed > 0f) config.racers.speed = round.racerSpeed;
+                if (round.floorColor.a > 0f) config.visuals.floorColor = round.floorColor;
+                if (round.wallColor.a > 0f) config.visuals.wallColor = round.wallColor;
                 config.arena.mode = ArenaMode.Authored;
                 config.arena.arenaId = round.arenaId;
                 config.endRules.winCondition = round.winCondition;
@@ -230,6 +275,11 @@ namespace CubeSim.Core
                 }
 
                 _bootstrap.RunConfig(config);
+                if (round.modeKind == ModeKind.Arena && _bootstrap.Runner != null)
+                {
+                    _telemetry ??= new ArenaTelemetry();
+                    _telemetry.BeginRound(i + 1, round.arenaId, _bootstrap.Runner);
+                }
                 _bootstrap.Paused = true;
 
                 if (_bootstrap.Runner != null)
@@ -258,10 +308,23 @@ namespace CubeSim.Core
 
                 while (_bootstrap.Runner != null && !_bootstrap.Runner.Finished) yield return null;
                 if (_bootstrap.Runner == null) yield break;
+                // Arena: the finishing blow plays out in slow motion before the card drops.
+                if (round.modeKind == ModeKind.Arena) yield return new WaitForSecondsRealtime(CombatJuice.KillCamHold + 0.3f);
 
                 SimulationResult result = _bootstrap.Runner.Result;
+                _telemetry?.EndRound(result);
                 Color winner = result.winnerColor;
                 _roundWinners.Add(winner);
+                if (result.winnerIndex >= 0 && result.winnerIndex < _bootstrap.Runner.Racers.Length)
+                {
+                    int winnerSlot = _bootstrap.Runner.Racers[result.winnerIndex].PaletteIndex;
+                    _winnerSlots.Add(winnerSlot);
+                    if (_bracket != null)
+                    {
+                        if (round.finalOfWinners) _bracket.Crown(winnerSlot);
+                        else _bracket.MarkGroup(_groupsPlayed++, winnerSlot);
+                    }
+                }
 
                 _bootstrap.Paused = true;
                 _cards.ShowWinner(winner, DescribeOutcome(result), result.winnerName);
@@ -316,6 +379,7 @@ namespace CubeSim.Core
                 champion = last;
             }
             if (rounds.Count > 1) _cards.ShowPodium(champion, _roundWinners);
+            _telemetry?.Write(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
             Finished = true;
         }
 

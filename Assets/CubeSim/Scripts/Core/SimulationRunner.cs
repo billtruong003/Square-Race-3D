@@ -134,8 +134,10 @@ namespace CubeSim.Core
             _killByDevice = (racer, cause) =>
             {
                 if (!racer.Alive) return;
+                // A piston is a trap, not the squeeze: a device kill counts as a hazard death.
+                _deviceKill = true;
                 Kill(racer, null, cause);
-                if (cause == DeathCause.Crushed) CrushDeaths++; else HazardDeaths++;
+                _deviceKill = false;
             };
 
             Result.seed = config.seed;
@@ -196,7 +198,6 @@ namespace CubeSim.Core
                 if (_solver.Resolve(racer) == ConstraintOutcome.Crushed)
                 {
                     Kill(racer, null, DeathCause.Crushed);
-                    CrushDeaths++;
 
                     // A fully closing arena makes every remaining racer illegal on the same step.
                     // Stopping here leaves a survivor instead of collapsing the run into a draw.
@@ -225,7 +226,10 @@ namespace CubeSim.Core
 
             // 6. Feeding and goal detection are their own passes, deliberately outside the mover.
             _food?.Step(_racers);
-            _goals?.Step(_racers, ElapsedTime);
+            // A goal pad only means something in a race; in a fight it would park (and shield)
+            // whoever wandered onto it.
+            if (_config.endRules.winCondition == WinCondition.ReachGoal || _config.endRules.winCondition == WinCondition.TeamFinishers)
+                _goals?.Step(_racers, ElapsedTime);
 
             EvaluateEndConditions();
         }
@@ -247,7 +251,6 @@ namespace CubeSim.Core
                     if (hazard.IsLethal)
                     {
                         Kill(racer, null, DeathCause.Hazard);
-                        HazardDeaths++;
                     }
                     else
                     {
@@ -282,7 +285,6 @@ namespace CubeSim.Core
 
                 _lastRotorCut[racer.Index] = ElapsedTime;
                 ApplyDamage(racer, null, rotor.DamagePerHit, DeathCause.Hazard);
-                if (!racer.Alive) HazardDeaths++;
             }
         }
 
@@ -302,15 +304,23 @@ namespace CubeSim.Core
             }
 
             victim.Health -= amount;
+            victim.Visual?.PlayHurt();
             OnRacerDamaged?.Invoke(victim, attacker, amount);
             if (victim.Health > 0f) return;
 
             Kill(victim, attacker, cause);
         }
 
+        private bool _deviceKill;
+
         private void Kill(Racer racer, Racer killer, DeathCause cause)
         {
             if (!racer.Alive) return;
+
+            // One place counts every death, whatever path dealt the blow (saw cuts and spike
+            // damage used to slip past the tallies, so the lab under-reported traps).
+            if (cause == DeathCause.Crushed && !_deviceKill) CrushDeaths++;
+            else if (cause == DeathCause.Hazard || cause == DeathCause.Crushed) HazardDeaths++;
 
             racer.Alive = false;
             racer.Health = 0f;
@@ -585,7 +595,8 @@ namespace CubeSim.Core
             Result.winnerGoalTime = racer.GoalTime;
 
             var teams = _config.racers.teams;
-            Result.winnerTeamName = racer.Team >= 0 && racer.Team < teams.Count ? teams[racer.Team].name : "";
+            // A single-team list is a solo field: the card must not say "team".
+            Result.winnerTeamName = teams.Count > 1 && racer.Team >= 0 && racer.Team < teams.Count ? teams[racer.Team].name : "";
         }
     }
 }
