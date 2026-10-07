@@ -20,11 +20,11 @@ RenderSettings:
   m_FogDensity: 0.01
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
-  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientSkyColor: {r: 0.2, g: 0.2, b: 0.24, a: 1}
   m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
   m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
   m_AmbientIntensity: 1
-  m_AmbientMode: 0
+  m_AmbientMode: 3
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
   m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
@@ -164,10 +164,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8e72631efca9c841b365efbaf0d7a72, type: 3}
   m_Name: 
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Core.SimulationBootstrap
-  configAsset: {fileID: 11400000, guid: 0715178e70776734087fee680de90f92, type: 2}
+  configAsset: {fileID: 0}
   jsonConfigPath: 
   inlineConfig:
-    seed: 20260831
+    seed: 527912
     simulation:
       fixedTimeStep: 0.016666668
       applyFixedTimeStep: 1
@@ -175,8 +175,8 @@ MonoBehaviour:
       maxCollisionIterations: 6
       groundY: 0
     arena:
-      mode: 0
-      arenaId: 
+      mode: 1
+      arenaId: V_RC06
       size: {x: 52, y: 30}
       wallHeight: 2.4
       wallThickness: 1.2
@@ -211,12 +211,12 @@ MonoBehaviour:
       spawnRegions: []
       zones: []
     racers:
-      count: 10
-      cubeSize: 1
-      speed: 9
-      maxHealth: 100
-      visual: Skeleton
-      visualHeightRatio: 1.6
+      count: 12
+      cubeSize: 2
+      speed: 11.5
+      maxHealth: 3
+      visual: EyeCube
+      visualHeightRatio: 1.7
       racerVisualScale: 1
       tintModels: 1
       weaponPickupScale: 1
@@ -232,25 +232,27 @@ MonoBehaviour:
         holdEuler: {x: 0, y: 0, z: 0}
       trail:
         enabled: 1
-        length: 3.2
+        length: 7
         width: 0.85
-        baseWidth: 0
-        minPointDistance: 0.25
+        baseWidth: 1.25
+        minPointDistance: 0.28
         heightOffset: 0.06
         rideRacerCentre: 1
         lifetime: 0
         disappearMode: 3
-        deathRetractDuration: 0.55
-        deathFadeDuration: 0.45
+        deathRetractDuration: 0.5
+        deathFadeDuration: 0.4
         rootCapEnabled: 1
-        rootCapRadius: 1.15
+        rootCapRadius: 1.2
         rootCapHeightOffset: 0.075
         rootCapUsesOutline: 1
       startDirectionMode: 0
       startAngles: []
-      minAxisAngle: 20
-      placement: 1
-      spawnClearance: 0.25
+      minAxisAngle: 25
+      wallRoughness: 3
+      goalLean: 4
+      placement: 2
+      spawnClearance: 0.35
       teamAssignment: 0
       teams: []
       colorSource: 0
@@ -262,40 +264,95 @@ MonoBehaviour:
       paletteIndices: 
     pressure:
       enabled: 1
-      mode: 0
+      mode: 2
       overhang: 1.5
-      height: 3.2
+      height: 2.2
       trackSpeedScale: 0
       trackStartDelay: -1
+      zone:
+        shape: 0
+        startDelay: 3
+        speed: 1.2
+        closeSeconds: 40
+        keepNearGoal: 5
+        finalRadius: 3.5
+        phases: 4
+        holdSeconds: 6
+        shrinkSeconds: 5
+        tileSize: 2
+        tileJitter: 1.5
+        warnSeconds: 2.5
+        lethal: 1
+        cellSize: 0.5
       slabs:
       - side: 0
-        startInset: 0
-        targetInset: 20
-        startDelay: 4
-        speed: 0.16
+        startInset: 0.5
+        targetInset: 32
+        startDelay: 6
+        speed: 0.2
       - side: 1
-        startInset: 0
-        targetInset: 20
-        startDelay: 4
-        speed: 0.16
+        startInset: 0.5
+        targetInset: 32
+        startDelay: 6
+        speed: 0.2
     weapons:
       enabled: 1
-      count: 1
+      count: 0
       allowedIds: []
       allowedCategories: 
-      pickupRadius: 0.55
+      pickupRadius: 0.6
       friendlyFire: 1
       releaseMode: 0
-      holdDuration: 7
-      ammo: 5
-      dropRearmDelay: 0.4
-      repickupCooldown: 1.5
-      catalog: []
+      holdDuration: 6
+      ammo: 4
+      dropRearmDelay: 0.5
+      repickupCooldown: 2
+      catalog:
+      - id: Cleaver
+        category: 0
+        damage: 1
+        attackCooldown: 1
+        attackRange: 2
+        attackArc: 120
+        hitscan: 0
+        projectileSpeed: 26
+        projectileRadius: 0.18
+        requireLineOfSight: 1
+        releaseMode: 1
+        useOwnRelease: 0
+        holdDuration: 7
+        ammo: 7
+        visualPrefabPath: 
+        color: {r: 0.9, g: 0.75, b: 0.5, a: 1}
+        visualSize: {x: 0.09, y: 0.09, z: 0.95}
+        gripOffset: {x: 0, y: 0, z: 0}
+        gripEuler: {x: 0, y: 0, z: 0}
+        knockback: 0
+        pellets: 1
+        spreadDegrees: 0
+        pierce: 0
+        lobbed: 0
+        blastRadius: 0
+        blastEdgeDamage: 0
+        fuseSeconds: 0
+        dropWeight: 1
+        kind: 0
+        orbitPeriod: 0.8
+        bladeLength: 2.5
+        bladeWidth: 0.35
+        staggerSeconds: 0
+        bounces: 0
+        aimSeconds: 0.8
+        shieldHits: 3
     visuals:
       shaderName: CleanRender/ToonLit
       floorColor: {r: 0.36, g: 0.36, b: 0.38, a: 1}
       wallColor: {r: 0.3, g: 0.3, b: 0.33, a: 1}
       shadowColor: {r: 0.19, g: 0.19, b: 0.22, a: 1}
+      wallBevel: 1
+      wallCornerRadius: 0.35
+      wallChamfer: 0.15
+      wallShadowFactor: 0.72
       pressureColor: {r: 1, g: 0.55, b: 0.06, a: 1}
       pressureEmission: 1
       racerEmission: 0.55
@@ -337,25 +394,26 @@ MonoBehaviour:
         vignetteColor: {r: 0.02, g: 0.02, b: 0.04, a: 1}
         antialiasing: 1
       ambientColor: {r: 0.2, g: 0.2, b: 0.24, a: 1}
-      lightColor: {r: 1, g: 0.97, b: 0.92, a: 1}
+      lightColor: {r: 1, g: 1, b: 1, a: 1}
       lightIntensity: 1.05
+      shadowStrength: 0.35
       lightEuler: {x: 62, y: 24, z: 0}
     camera:
       orthographic: 0
-      fieldOfView: 42
-      tiltDegrees: 0
-      margin: 1.08
+      fieldOfView: 44
+      tiltDegrees: 3
+      margin: 1.03
       heightOverride: 0
       leftReserve: 0
-      topReserve: 0
+      topReserve: 0.109375
       backgroundColor: {r: 0.09, g: 0.09, b: 0.1, a: 1}
     endRules:
-      winCondition: 0
-      maxDuration: 300
+      winCondition: 1
+      maxDuration: 150
       loopOnEnd: 0
       resultHoldTime: 3
       advanceSeedOnLoop: 1
-      requiredFinishers: 1
+      requiredFinishers: 3
       eliminateCount: 0
     mode:
       kind: 0
@@ -378,6 +436,11 @@ MonoBehaviour:
       lootBomb: 20
       lootBoostSeconds: 5
       lootBoostScale: 1.6
+      arenaMaxWeapons: 4
+      arenaDropInterval: 6
+      arenaDropWarning: 1.2
+      arenaDropEdgeMargin: 3
+      arenaDropTable: []
       paintTileSize: 1.42
   visualLibrary: {fileID: 11400000, guid: 3223433713cb44746b92520ba84f13fc, type: 2}
   arenaLibrary: {fileID: 11400000, guid: 1fadccc17a8758d48acd13b9d08d6fcb, type: 2}
@@ -403,7 +466,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 1903595020}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &505089732
@@ -420,7 +484,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Core.EpisodeDirector
   rounds:
   - arenaId: V_RC06
-    seed: 513805
+    seed: 527897
     winCondition: 1
     maxDuration: 300
     pressureTargetInset: 54
@@ -439,6 +503,10 @@ MonoBehaviour:
     paletteIndices: 
     eliminateCount: 0
     grandPrix: 0
+    finalOfWinners: 0
+    racerSpeed: 0
+    floorColor: {r: 0, g: 0, b: 0, a: 0}
+    wallColor: {r: 0, g: 0, b: 0, a: 0}
   introDuration: 1.2
   roundCardDuration: 0.9
   winnerCardDuration: 2.5
@@ -541,8 +609,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 2.2316527
-  far clip plane: 278.53223
+  near clip plane: 4.8661075
+  far clip plane: 489.2886
   field of view: 44
   orthographic: 0
   orthographic size: 5
@@ -622,12 +690,109 @@ Transform:
   m_GameObject: {fileID: 1208322856}
   serializedVersion: 2
   m_LocalRotation: {x: 0.68835455, y: 0, z: 0, w: 0.7253744}
-  m_LocalPosition: {x: -5.770536, y: 44.633053, z: -2.3391194}
+  m_LocalPosition: {x: 0, y: 97.32215, z: -0.7997365}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1903595019
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1903595020}
+  - component: {fileID: 1903595021}
+  m_Layer: 0
+  m_Name: SimulationLight
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1903595020
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903595019}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.5037833, y: 0.17821512, z: -0.10708244, w: 0.8384362}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 505089731}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!108 &1903595021
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903595019}
+  m_Enabled: 1
+  serializedVersion: 12
+  m_Type: 1
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 1.05
+  m_Range: 10
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize2D: {x: 0.5, y: 0.5}
+  m_Shadows:
+    m_Type: 2
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 0.35
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
