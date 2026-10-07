@@ -40,6 +40,12 @@ namespace CubeSim.Arena
             public Vector3[] ShakeBase;
             public float ShakeTimer;
 
+            /// <summary>No racer of the gate's colour is left: anyone may now break it.</summary>
+            public bool Orphaned;
+
+            /// <summary>Every cube that could still help has hit once: further hits by them count too.</summary>
+            public bool RepeatHitsCount;
+
             public readonly HashSet<int> UniqueRacers = new HashSet<int>();
             public readonly Dictionary<int, float> LastContact = new Dictionary<int, float>();
         }
@@ -169,11 +175,59 @@ namespace CubeSim.Arena
         {
             BreakableWall wall = entry.Wall;
 
-            if (wall.IsColorGated && !wall.ColorMatches(racer.Color)) return false;
+            if (wall.IsColorGated && !entry.Orphaned && !wall.ColorMatches(racer.Color)) return false;
 
-            if (wall.CountsUniqueRacersOnly && !entry.UniqueRacers.Add(racer.Index)) return false;
+            if (wall.CountsUniqueRacersOnly && !entry.UniqueRacers.Add(racer.Index) && !entry.RepeatHitsCount) return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// Keeps every gate breakable by the field that is actually left. A colour gate whose colour
+        /// died (or was never dealt) opens to everyone, and a unique-hits wall never asks for more
+        /// distinct cubes than can still reach it - otherwise the route seals and the round only
+        /// ends on the clock.
+        /// </summary>
+        public void RefreshEligibility(Racer[] racers)
+        {
+            for (int e = 0; e < _entries.Count; e++)
+            {
+                Entry entry = _entries[e];
+                if (entry.Broken) continue;
+                BreakableWall wall = entry.Wall;
+
+                int eligibleLeft = 0;
+                bool colourAlive = false;
+                for (int i = 0; i < racers.Length; i++)
+                {
+                    Racer r = racers[i];
+                    if (!r.IsActive) continue;
+                    bool matches = !wall.IsColorGated || wall.ColorMatches(r.Color);
+                    if (matches) colourAlive = true;
+                    if ((matches || entry.Orphaned) && !entry.UniqueRacers.Contains(r.Index)) eligibleLeft++;
+                }
+
+                if (wall.IsColorGated && !colourAlive && !entry.Orphaned)
+                {
+                    entry.Orphaned = true;
+                    // Recount with the wider field on the next pass.
+                    e--;
+                    continue;
+                }
+
+                if (wall.CountsUniqueRacersOnly)
+                {
+                    int reachable = entry.UniqueRacers.Count + eligibleLeft;
+                    if (entry.Target > reachable)
+                    {
+                        // Fewer fresh cubes left than hits needed: lower the bar to what the field
+                        // can still deliver, and once nobody fresh is left, repeat hits count.
+                        if (reachable > entry.Count) entry.Target = Mathf.Max(1, reachable);
+                        else entry.RepeatHitsCount = true;
+                        UpdateCounter(entry);
+                    }
+                }
+            }
         }
 
         public void Step(float deltaTime)

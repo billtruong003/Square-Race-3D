@@ -22,6 +22,17 @@ namespace CubeSim.Racers
         private readonly int _maxIterations;
         private readonly float _planeY;
 
+        /// <summary>Seeded wall roughness in degrees; 0 = mirror-perfect bounces.</summary>
+        public float RoughnessDegrees;
+
+        /// <summary>Lean toward the goal on a bounce, in degrees, when a goal field is set.</summary>
+        public float GoalLeanDegrees;
+
+        public int Seed;
+
+        /// <summary>Walking distance to the goal, for the lean. Null outside races.</summary>
+        public CubeSim.Arena.PathField GoalField;
+
         // Shared scratch buffer: overlap recovery is rare and the simulation is single threaded, so
         // one static buffer keeps the movement loop allocation free.
         private static readonly Collider[] OverlapBuffer = new Collider[16];
@@ -33,6 +44,10 @@ namespace CubeSim.Racers
             _skin = Mathf.Max(0.001f, skinWidth);
             _maxIterations = Mathf.Max(1, maxIterations);
             _planeY = planeY;
+            RoughnessDegrees = 0f;
+            GoalLeanDegrees = 0f;
+            Seed = 0;
+            GoalField = null;
         }
 
         /// <summary>
@@ -95,7 +110,7 @@ namespace CubeSim.Racers
                 if (PlanarMath.TryNormalizePlanar(hit.normal, out Vector3 normal) &&
                     Vector3.Dot(direction, normal) < -PlanarMath.Epsilon)
                 {
-                    direction = PlanarMath.Reflect(direction, normal);
+                    direction = Roughen(PlanarMath.Reflect(direction, normal), normal, position, racer);
                     // Step off the surface so the next cast does not start flush against it, which is
                     // what produces jitter when a racer skims a wall at a shallow angle.
                     position += normal * _skin;
@@ -115,6 +130,43 @@ namespace CubeSim.Racers
             position.y = _planeY + racer.HalfExtent;
             racer.Position = position;
             racer.Direction = direction;
+        }
+
+        /// <summary>
+        /// Turns a perfect reflection by a small seeded angle (and, in races, leans it toward the
+        /// goal). The result always points away from the wall, so it is still a bounce.
+        /// </summary>
+        private Vector3 Roughen(Vector3 reflected, Vector3 normal, Vector3 position, Racer racer)
+        {
+            if (RoughnessDegrees <= 0f && (GoalField == null || GoalLeanDegrees <= 0f)) return reflected;
+
+            uint h = (uint)Seed * 2654435761u ^ (uint)(racer.Index + 1) * 2246822519u ^ (uint)(racer.BounceCount + 1) * 3266489917u;
+            h ^= h >> 15; h *= 2246822519u; h ^= h >> 13;
+            float jitter = ((h & 0xFFFF) / 65535f * 2f - 1f) * RoughnessDegrees;
+            Vector3 best = Rotate(reflected, jitter);
+
+            CubeSim.Arena.PathField field = GoalField;
+            if (field != null && GoalLeanDegrees > 0f)
+            {
+                float bestScore = field.Sample(position + best * 1.5f);
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    Vector3 candidate = Rotate(reflected, jitter + side * GoalLeanDegrees);
+                    float score = field.Sample(position + candidate * 1.5f);
+                    if (score < bestScore) { bestScore = score; best = candidate; }
+                }
+            }
+
+            // Never let the turn send the cube back into the face it just left.
+            if (Vector3.Dot(best, normal) < 0.05f) return reflected;
+            return best;
+        }
+
+        private static Vector3 Rotate(Vector3 v, float degrees)
+        {
+            float r = degrees * Mathf.Deg2Rad;
+            float c = Mathf.Cos(r), s = Mathf.Sin(r);
+            return new Vector3(v.x * c - v.z * s, 0f, v.x * s + v.z * c);
         }
 
         /// <summary>

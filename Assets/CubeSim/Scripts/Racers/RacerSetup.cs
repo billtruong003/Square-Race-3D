@@ -110,6 +110,15 @@ namespace CubeSim.Racers
         [Tooltip("Keeps random start directions this many degrees away from an axis.")]
         [Range(0f, 44f)] public float minAxisAngle = 20f;
 
+        [Tooltip("Wall roughness: each wall bounce turns the reflection by up to this many degrees, seeded. " +
+                 "Every wall is axis aligned, so a perfect reflection never changes a cube's angle and it can " +
+                 "loop the same lane forever.")]
+        [Range(0f, 10f)] public float wallRoughness = 3f;
+
+        [Tooltip("Races only: on a wall bounce, the reflection may lean up to this many degrees toward the goal " +
+                 "along the walking-distance field. Still a bounce, never steering.")]
+        [Range(0f, 15f)] public float goalLean = 4f;
+
         public SpawnPlacement placement = SpawnPlacement.OpenPlayfield;
 
         [Tooltip("Clearance kept between a spawn point and any wall, on top of the racer half size.")]

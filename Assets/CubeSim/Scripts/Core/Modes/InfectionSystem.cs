@@ -67,7 +67,21 @@ namespace CubeSim.Core.Modes
         public void Step(float elapsed, Racer[] racers)
         {
             _now = elapsed;
-            if (_started || elapsed < _config.infectionStart) return;
+            if (elapsed < _config.infectionStart) return;
+
+            if (_started)
+            {
+                // Every carrier died to traps: nothing could spread and the round would only end
+                // on the clock. A fresh patient zero keeps the chase alive.
+                bool carrierAlive = false;
+                for (int i = 0; i < racers.Length; i++)
+                {
+                    if (racers[i].IsActive && racers[i].Infected) { carrierAlive = true; break; }
+                }
+
+                if (carrierAlive || CleanAlive(racers) <= 1) return;
+            }
+
             _started = true;
 
             int alive = 0;

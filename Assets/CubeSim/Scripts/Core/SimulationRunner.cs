@@ -45,7 +45,20 @@ namespace CubeSim.Core
         public ArenaDeviceSystem Devices => _devices;
 
         /// <summary>Walking distance to the goal; null on maps without one. Drives race standings.</summary>
-        public PathField GoalField { get; set; }
+        public PathField GoalField
+        {
+            get => _goalField;
+            set
+            {
+                _goalField = value;
+                // Only a race leans its bounces toward the goal; a fight has nowhere to lean.
+                bool race = _config.endRules.winCondition == WinCondition.ReachGoal ||
+                            _config.endRules.winCondition == WinCondition.TeamFinishers;
+                _mover.GoalField = race ? value : null;
+            }
+        }
+
+        private PathField _goalField;
         public int RacerCount => _racers.Length;
         public int AliveCount { get; private set; }
         public int FinishedCount => _goals?.Finishers.Count ?? 0;
@@ -117,6 +130,10 @@ namespace CubeSim.Core
                 config.simulation.maxCollisionIterations,
                 config.simulation.groundY);
 
+            _mover.RoughnessDegrees = config.racers.wallRoughness;
+            _mover.GoalLeanDegrees = config.racers.goalLean;
+            _mover.Seed = config.seed;
+
             _solver = new ConstraintSolver(_mover, pressure, config.simulation.skinWidth,
                 config.simulation.groundY);
             _devices?.UseMover(_mover);
@@ -185,6 +202,7 @@ namespace CubeSim.Core
             }
 
             _breakableWalls?.Step(deltaTime);
+            _breakableWalls?.RefreshEligibility(_racers);
 
             // 3. Racer-vs-racer contact. It runs before the constraint pass on purpose: separating a
             //    pair can push somebody toward a wall, and step 4 is what guarantees nobody ends the

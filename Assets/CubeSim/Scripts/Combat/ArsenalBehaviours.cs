@@ -74,6 +74,7 @@ namespace CubeSim.Combat
                 Racer other = racers[i];
                 if (other == racer || !other.IsActive) continue;
                 if (!_config.friendlyFire && other.Team == racer.Team) continue;
+                if (!HasLineOfSight(racer.Position, other.Position)) continue;
 
                 Vector3 rel = other.Position - origin; rel.y = 0f;
                 float along = Vector3.Dot(rel, dir);
@@ -197,6 +198,7 @@ namespace CubeSim.Combat
                 Racer other = racers[i];
                 if (!other.IsActive || other == racer) continue;
                 if (!_config.friendlyFire && other.Team == racer.Team) continue;
+                if (!HasLineOfSight(racer.Position, other.Position)) continue;
                 Vector3 rel = other.Position - racer.Position; rel.y = 0f;
                 float along = Vector3.Dot(rel, shot);
                 if (along <= 0f || along > weapon.attackRange) continue;
@@ -252,6 +254,7 @@ namespace CubeSim.Combat
                 Racer other = racers[i];
                 if (other == racer || !other.IsActive) continue;
                 if (!_config.friendlyFire && other.Team == racer.Team) continue;
+                if (!HasLineOfSight(racer.Position, other.Position)) continue;
                 Vector3 offset = other.Position - racer.Position; offset.y = 0f;
                 float sqr = offset.sqrMagnitude;
                 if (sqr > bestSqr) continue;

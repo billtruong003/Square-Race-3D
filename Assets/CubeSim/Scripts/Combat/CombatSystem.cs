@@ -169,6 +169,7 @@ namespace CubeSim.Combat
                         Racer other = racers[j];
                         if (other == racer || !other.IsActive) continue;
                         if (!_config.friendlyFire && other.Team == racer.Team) continue;
+                        if (!HasLineOfSight(racer.Position, other.Position)) continue;
                         Vector3 d = other.Position - racer.Position; d.y = 0f;
                         if (d.sqrMagnitude <= reach * reach) { touching = true; break; }
                     }
@@ -246,7 +247,7 @@ namespace CubeSim.Combat
             _root = new GameObject("Combat").transform;
             _root.SetParent(parent, false);
 
-            _projectiles = new ProjectilePool(_root, materials, groundY, visuals);
+            _projectiles = new ProjectilePool(_root, materials, groundY, visuals) { FriendlyFire = config.friendlyFire };
 
             if (config.enabled) SpawnWeapons(random);
         }
@@ -598,6 +599,14 @@ namespace CubeSim.Combat
         }
 
         /// <summary>Spends one use of an ammo-based weapon and releases it when they run out.</summary>
+        /// <summary>No blade, punch or beam reaches through a wall.</summary>
+        private bool HasLineOfSight(Vector3 from, Vector3 to)
+        {
+            float y = _groundY + 0.5f;
+            return !Physics.Linecast(new Vector3(from.x, y, from.z), new Vector3(to.x, y, to.z),
+                _wallMask, QueryTriggerInteraction.Ignore);
+        }
+
         private void ConsumeUse(Racer racer)
         {
             if (ResolveReleaseMode(racer.Weapon) != WeaponReleaseMode.AmmoBased) return;
@@ -626,6 +635,7 @@ namespace CubeSim.Combat
                 Racer other = racers[i];
                 if (!other.IsActive || other == racer) continue;
                 if (!_config.friendlyFire && other.Team == racer.Team) continue;
+                if (!HasLineOfSight(racer.Position, other.Position)) continue;
 
                 Vector3 offset = other.Position - racer.Position;
                 offset.y = 0f;
@@ -675,6 +685,7 @@ namespace CubeSim.Combat
                 Racer other = racers[i];
                 if (!other.IsActive || other == racer) continue;
                 if (!_config.friendlyFire && other.Team == racer.Team) continue;
+                if (!HasLineOfSight(racer.Position, other.Position)) continue;
 
                 Vector3 offset = other.Position - racer.Position;
                 offset.y = 0f;
@@ -710,6 +721,7 @@ namespace CubeSim.Combat
                     Racer other = racers[i];
                     if (!other.IsActive || other == racer) continue;
                     if (!_config.friendlyFire && other.Team == racer.Team) continue;
+                    if (!HasLineOfSight(racer.Position, other.Position)) continue;
                     Vector3 rel = other.Position - racer.Position; rel.y = 0f;
                     float along = Vector3.Dot(rel, shot);
                     if (along <= 0f || along > weapon.attackRange) continue;
@@ -776,12 +788,16 @@ namespace CubeSim.Combat
                         _groundY,
                         origin.z + Mathf.Sin(angle) * radius);
 
-                    if (IsValidDrop(candidate, clearance)) return candidate;
+                    // Reachable from where it fell: never through a wall into a sealed room.
+                    if (IsValidDrop(candidate, clearance) && HasLineOfSight(origin, candidate)) return candidate;
                 }
             }
 
+            // Last resort: the open centre, but only if it is actually open floor; otherwise the
+            // weapon stays where it fell rather than appearing inside a wall.
             Rect bounds = _pressure.CurrentBounds(_arena.PlayableRect);
-            return new Vector3(bounds.center.x, _groundY, bounds.center.y);
+            var centre = new Vector3(bounds.center.x, _groundY, bounds.center.y);
+            return IsValidDrop(centre, clearance) ? centre : origin;
         }
 
         private bool IsValidDrop(Vector3 position, float clearance)

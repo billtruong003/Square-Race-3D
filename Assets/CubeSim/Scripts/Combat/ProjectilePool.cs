@@ -84,8 +84,15 @@ namespace CubeSim.Combat
             {
                 Racer r = _racersForBlast[i];
                 if (!r.IsActive) continue;
+                if (r == source && !sourceDies) continue;
+                if (Spares(source, r)) continue;
                 Vector3 d = r.Position - centre; d.y = 0f;
-                if (d.magnitude <= radius + r.HalfExtent) order.Add(r);
+                if (d.magnitude > radius + r.HalfExtent) continue;
+                // A wall between the blast and the cube shields it.
+                Vector3 from = new Vector3(centre.x, _groundY + 0.5f, centre.z);
+                Vector3 to = new Vector3(r.Position.x, _groundY + 0.5f, r.Position.z);
+                if (Physics.Linecast(from, to, _wallMask, QueryTriggerInteraction.Ignore)) continue;
+                order.Add(r);
             }
             order.Sort((a, b) => (a.Position - centre).sqrMagnitude.CompareTo((b.Position - centre).sqrMagnitude));
 
@@ -163,9 +170,13 @@ namespace CubeSim.Combat
                 float step = Mathf.Min(p.Speed * deltaTime, p.RemainingRange);
                 if (step <= 0f) { Retire(p); continue; }
 
-                // Walls stop the bolt before it can reach anything behind them.
-                if (Physics.SphereCast(p.Position, p.Radius, p.Direction, out RaycastHit hit, step,
-                        _wallMask, QueryTriggerInteraction.Ignore))
+                // Walls stop the bolt before it can reach anything behind them - but a cube standing
+                // between the bolt and the wall is hit first, so only test the wall when no racer is
+                // closer along the path.
+                bool wallAhead = Physics.SphereCast(p.Position, p.Radius, p.Direction, out RaycastHit hit, step,
+                    _wallMask, QueryTriggerInteraction.Ignore);
+                Racer early = wallAhead && !p.Lobbed ? FindHit(p, racers, Mathf.Max(0f, hit.distance)) : null;
+                if (wallAhead && early == null)
                 {
                     p.Position += p.Direction * Mathf.Max(0f, hit.distance);
                     p.Transform.localPosition = p.Position;
@@ -188,7 +199,7 @@ namespace CubeSim.Combat
                 }
 
                 // A lobbed shell flies over heads until it lands; it only hits what it lands on.
-                Racer victim = p.Lobbed && p.RemainingRange > step + 0.01f ? null : FindHit(p, racers, step);
+                Racer victim = early ?? (p.Lobbed && p.RemainingRange > step + 0.01f ? null : FindHit(p, racers, step));
                 p.Position += p.Direction * step;
                 p.RemainingRange -= step;
                 float arc = p.Lobbed && p.TotalRange > 0f ? 4f * (p.RemainingRange / p.TotalRange) * (1f - p.RemainingRange / p.TotalRange) : 0f;
@@ -228,8 +239,17 @@ namespace CubeSim.Combat
             }
         }
 
-        /// <summary>Swept box test against every living racer other than the shooter.</summary>
-        private static Racer FindHit(Projectile p, Racer[] racers, float step)
+        /// <summary>Teammates are skipped by shots and blasts when the round turns friendly fire off.</summary>
+        public bool FriendlyFire = true;
+
+        private bool Spares(Racer shooter, Racer target) =>
+            shooter != null && target != shooter && !FriendlyFire && shooter.Team == target.Team;
+
+        /// <summary>
+        /// Swept box test against every racer still in play other than the shooter (a ricochet used
+        /// to be allowed to kill its own shooter, uncredited). Parked finishers are out of play.
+        /// </summary>
+        private Racer FindHit(Projectile p, Racer[] racers, float step)
         {
             Racer best = null;
             float bestDistance = float.MaxValue;
@@ -237,7 +257,7 @@ namespace CubeSim.Combat
             for (int i = 0; i < racers.Length; i++)
             {
                 Racer racer = racers[i];
-                if (!racer.Alive || (racer == p.Owner && p.Bounces == p.BouncesAtSpawn)) continue;
+                if (!racer.IsActive || racer == p.Owner || Spares(p.Owner, racer)) continue;
 
                 Vector3 offset = racer.Position - p.Position;
                 float along = offset.x * p.Direction.x + offset.z * p.Direction.z;
