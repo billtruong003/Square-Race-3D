@@ -248,6 +248,7 @@ namespace CubeSim.EditorTools
                     }
 
                     var rounds = new List<EpisodeDirector.RoundSpec>();
+                    int spareCursor = roundCount;
                     for (int r = 0; r < roundCount; r++)
                     {
                         int seed = draw.Next(100000, 999999);
@@ -279,9 +280,9 @@ namespace CubeSim.EditorTools
                             // unused one from the pool rather than shipped.
                             for (int swap = 0; (best == null || best.Score < -40f) && swap < 3; swap++)
                             {
-                                int spare = roundCount + r * 3 + swap;
-                                if (spare >= order.Length) break;
-                                spec.arenaId = order[spare];
+                                // Next map this video has not played yet, from the shuffled pool.
+                                if (spareCursor >= order.Length) break;
+                                spec.arenaId = order[spareCursor++];
                                 best = SeedScout.Pick(spec, seed, 10, 25f, 70f);
                                 report.Append($"->{spec.arenaId}");
                             }
