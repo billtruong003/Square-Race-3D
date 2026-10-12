@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &101618791302786466
+--- !u!1 &245926648025108896
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,44 +8,44 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7911703856360578968}
-  - component: {fileID: 1115649792408592291}
+  - component: {fileID: 6164986427200560618}
+  - component: {fileID: 4063480177953959116}
   m_Layer: 0
-  m_Name: WeaponArea
+  m_Name: FoodArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7911703856360578968
+--- !u!4 &6164986427200560618
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 101618791302786466}
+  m_GameObject: {fileID: 245926648025108896}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.5, y: 0.2, z: 0}
-  m_LocalScale: {x: 5.6666665, y: 1, z: 8.769231}
+  m_LocalPosition: {x: 0, y: 0.2, z: -13.153846}
+  m_LocalScale: {x: 5.6666665, y: 1, z: 2.9230766}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4710604761352159696}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1115649792408592291
+--- !u!114 &4063480177953959116
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 101618791302786466}
+  m_GameObject: {fileID: 245926648025108896}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
+  m_Script: {fileID: 11500000, guid: aacf3275e6e17c44b994e97aef373bbe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
+  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.FoodArea
   id: 
-  weight: 1
+  spacing: 2.4
 --- !u!1 &810925922679789090
 GameObject:
   m_ObjectHideFlags: 0
@@ -495,7 +495,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.BreakableWall
   id: 00
   condition: 0
-  requiredHits: 60
+  requiredHits: 30
   requiredColor: {r: 1, g: 0, b: 0, a: 1}
   colorTolerance: 0.25
   contactCooldownPerRacer: 0.1
@@ -507,6 +507,54 @@ MonoBehaviour:
   hitFlashDuration: 0.12
   customVisual: 1
   rock: 1
+--- !u!1 &2766175966465256243
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5946171698875593023}
+  - component: {fileID: 5897607462337073222}
+  m_Layer: 0
+  m_Name: WeaponArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5946171698875593023
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2766175966465256243}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 8.5, y: 0.2, z: 0}
+  m_LocalScale: {x: 5.6666665, y: 1, z: 8.769231}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4710604761352159696}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5897607462337073222
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2766175966465256243}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
+  id: 
+  weight: 1
+  weaponId: 
+  respawnSeconds: 6
 --- !u!1 &2798601874746360021
 GameObject:
   m_ObjectHideFlags: 0
@@ -844,6 +892,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
   id: 
   weight: 1
+  weaponId: 
+  respawnSeconds: 6
 --- !u!1 &4483406141427491401
 GameObject:
   m_ObjectHideFlags: 0
@@ -1047,52 +1097,6 @@ MonoBehaviour:
   floorMode: 0
   designedCorridorWidth: 2.8
   visualFillPadding: 22
---- !u!1 &5738873155553136073
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8413220736134215443}
-  - component: {fileID: 6440291145980602124}
-  m_Layer: 0
-  m_Name: FoodArea
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8413220736134215443
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5738873155553136073}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: -13.153846}
-  m_LocalScale: {x: 5.6666665, y: 1, z: 2.9230766}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 4710604761352159696}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6440291145980602124
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5738873155553136073}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aacf3275e6e17c44b994e97aef373bbe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.FoodArea
-  id: 
-  spacing: 2.4
 --- !u!1 &5781701303538541352
 GameObject:
   m_ObjectHideFlags: 0
@@ -1290,9 +1294,9 @@ Transform:
   - {fileID: 3668699499672123149}
   - {fileID: 2482669874023968453}
   - {fileID: 1709839806304619849}
-  - {fileID: 7911703856360578968}
+  - {fileID: 5946171698875593023}
   - {fileID: 3216098934619861477}
-  - {fileID: 8413220736134215443}
+  - {fileID: 6164986427200560618}
   m_Father: {fileID: 7404025350908659210}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6296869029488726712
@@ -1589,7 +1593,7 @@ Transform:
   m_LocalScale: {x: 2.833334, y: 2.8, z: 35.076923}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8315096190387403151}
+  - {fileID: 7876356909490376675}
   m_Father: {fileID: 6819682024773008448}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5920534523241707754
@@ -1701,7 +1705,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.BreakableWall
   id: 01
   condition: 0
-  requiredHits: 60
+  requiredHits: 30
   requiredColor: {r: 1, g: 0, b: 0, a: 1}
   colorTolerance: 0.25
   contactCooldownPerRacer: 0.1
@@ -1877,7 +1881,7 @@ Transform:
   m_LocalScale: {x: 2.833334, y: 2.8, z: 35.076923}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 4359790074691231792}
+  - {fileID: 5196530370038927813}
   m_Father: {fileID: 6819682024773008448}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3644420393497540118
@@ -1989,7 +1993,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.BreakableWall
   id: 02
   condition: 0
-  requiredHits: 60
+  requiredHits: 30
   requiredColor: {r: 1, g: 0, b: 0, a: 1}
   colorTolerance: 0.25
   contactCooldownPerRacer: 0.1
@@ -2254,7 +2258,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4e0b131f8804dcf4eab3dddf78277251, type: 3}
   m_PrefabInstance: {fileID: 1678469819711507466}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &4254683956848609243
+--- !u!1001 &5735177632619591214
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -2327,12 +2331,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4e0b131f8804dcf4eab3dddf78277251, type: 3}
---- !u!4 &4359790074691231792 stripped
+--- !u!4 &5196530370038927813 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4e0b131f8804dcf4eab3dddf78277251, type: 3}
-  m_PrefabInstance: {fileID: 4254683956848609243}
+  m_PrefabInstance: {fileID: 5735177632619591214}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &8426127783968890468
+--- !u!1001 &7693495742234847240
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -2405,8 +2409,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4e0b131f8804dcf4eab3dddf78277251, type: 3}
---- !u!4 &8315096190387403151 stripped
+--- !u!4 &7876356909490376675 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4e0b131f8804dcf4eab3dddf78277251, type: 3}
-  m_PrefabInstance: {fileID: 8426127783968890468}
+  m_PrefabInstance: {fileID: 7693495742234847240}
   m_PrefabAsset: {fileID: 0}

@@ -282,52 +282,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &1221865443065824091
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 722672791068157819}
-  - component: {fileID: 3402339263443078766}
-  m_Layer: 0
-  m_Name: WeaponArea
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &722672791068157819
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1221865443065824091}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 21.25, y: 0.2, z: -11.692307}
-  m_LocalScale: {x: 2.833334, y: 1, z: 2.9230766}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2032536504979492919}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3402339263443078766
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1221865443065824091}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
-  id: 
-  weight: 1
 --- !u!1 &1533987810589590722
 GameObject:
   m_ObjectHideFlags: 0
@@ -422,6 +376,54 @@ Transform:
   - {fileID: 5106682692805398669}
   m_Father: {fileID: 1275227411607932764}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2801102720663437952
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4122156653963482982}
+  - component: {fileID: 2784451486990507977}
+  m_Layer: 0
+  m_Name: WeaponArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4122156653963482982
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2801102720663437952}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -15.583333, y: 0.2, z: -11.692307}
+  m_LocalScale: {x: 2.833334, y: 1, z: 2.9230766}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2032536504979492919}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2784451486990507977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2801102720663437952}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
+  id: 
+  weight: 1
+  weaponId: 
+  respawnSeconds: 6
 --- !u!1 &3390347380216160534
 GameObject:
   m_ObjectHideFlags: 0
@@ -468,6 +470,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
   id: 
   weight: 1
+  weaponId: 
+  respawnSeconds: 6
 --- !u!1 &3836158775107053425
 GameObject:
   m_ObjectHideFlags: 0
@@ -929,52 +933,6 @@ MonoBehaviour:
   fillDirection: 3
   heightOverride: 0
   keepBakedMaterial: 0
---- !u!1 &5771355033057587836
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5602811321923628983}
-  - component: {fileID: 3852219653112257821}
-  m_Layer: 0
-  m_Name: WeaponArea
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5602811321923628983
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5771355033057587836}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -15.583333, y: 0.2, z: -11.692307}
-  m_LocalScale: {x: 2.833334, y: 1, z: 2.9230766}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2032536504979492919}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3852219653112257821
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5771355033057587836}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
-  id: 
-  weight: 1
 --- !u!1 &6182442530718974979
 GameObject:
   m_ObjectHideFlags: 0
@@ -1257,8 +1215,8 @@ Transform:
   - {fileID: 8135918350649057312}
   - {fileID: 4639528897705151604}
   - {fileID: 399550094021855694}
-  - {fileID: 5602811321923628983}
-  - {fileID: 722672791068157819}
+  - {fileID: 4122156653963482982}
+  - {fileID: 2000184364170239858}
   m_Father: {fileID: 1275227411607932764}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7324125586380341346
@@ -1629,6 +1587,54 @@ MonoBehaviour:
   fillDirection: 0
   heightOverride: 0
   keepBakedMaterial: 0
+--- !u!1 &8031835274235142031
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2000184364170239858}
+  - component: {fileID: 3925598357535581967}
+  m_Layer: 0
+  m_Name: WeaponArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2000184364170239858
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8031835274235142031}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 21.25, y: 0.2, z: -11.692307}
+  m_LocalScale: {x: 2.833334, y: 1, z: 2.9230766}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2032536504979492919}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3925598357535581967
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8031835274235142031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
+  id: 
+  weight: 1
+  weaponId: 
+  respawnSeconds: 6
 --- !u!1 &8080712050575899247
 GameObject:
   m_ObjectHideFlags: 0

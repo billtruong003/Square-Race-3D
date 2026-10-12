@@ -190,7 +190,8 @@ namespace CubeSim.EditorTools
             score -= Mathf.Abs(seconds - ideal) * 0.6f;
 
             score += r.LeadChanges * 1.5f + r.LateLeadChanges * 4f;
-            score -= Mathf.Max(0f, r.LongestLull - 6f) * 0.8f;
+            // A clock round (coins) has no deaths to punctuate it; its lull says nothing.
+            if (!clock) score -= Mathf.Max(0f, r.LongestLull - 6f) * 0.8f;
             score -= r.Margin * 0.4f;
             r.Score = score;
             return r;

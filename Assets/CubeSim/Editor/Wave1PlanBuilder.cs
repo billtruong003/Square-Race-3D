@@ -275,6 +275,17 @@ namespace CubeSim.EditorTools
                         if (scout)
                         {
                             SeedScout.Result best = SeedScout.Pick(spec, seed, 10, 25f, 70f);
+                            // A map whose best seed still times out or fizzles is swapped for an
+                            // unused one from the pool rather than shipped.
+                            for (int swap = 0; (best == null || best.Score < -40f) && swap < 3; swap++)
+                            {
+                                int spare = roundCount + r * 3 + swap;
+                                if (spare >= order.Length) break;
+                                spec.arenaId = order[spare];
+                                best = SeedScout.Pick(spec, seed, 10, 25f, 70f);
+                                report.Append($"->{spec.arenaId}");
+                            }
+
                             if (best != null)
                             {
                                 spec.seed = best.Seed;

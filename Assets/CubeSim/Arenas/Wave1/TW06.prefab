@@ -34,7 +34,7 @@ Transform:
   m_LocalScale: {x: 2.833334, y: 2.8, z: 35.076923}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8735878014937241698}
+  - {fileID: 6292460267528606744}
   m_Father: {fileID: 8684183799516761932}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4036852851794624632
@@ -146,7 +146,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.BreakableWall
   id: 01
   condition: 0
-  requiredHits: 60
+  requiredHits: 30
   requiredColor: {r: 1, g: 0, b: 0, a: 1}
   colorTolerance: 0.25
   contactCooldownPerRacer: 0.1
@@ -304,7 +304,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.BreakableWall
   id: 00
   condition: 0
-  requiredHits: 60
+  requiredHits: 30
   requiredColor: {r: 1, g: 0, b: 0, a: 1}
   colorTolerance: 0.25
   contactCooldownPerRacer: 0.1
@@ -683,7 +683,7 @@ MonoBehaviour:
   fillDirection: 2
   heightOverride: 0
   keepBakedMaterial: 0
---- !u!1 &3005840393969524998
+--- !u!1 &2982326633425560940
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -691,8 +691,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 7481153376419099113}
-  - component: {fileID: 8762790319460740026}
+  - component: {fileID: 5844901384306840194}
+  - component: {fileID: 6183052427015957948}
   m_Layer: 0
   m_Name: WeaponArea
   m_TagString: Untagged
@@ -700,28 +700,28 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7481153376419099113
+--- !u!4 &5844901384306840194
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3005840393969524998}
+  m_GameObject: {fileID: 2982326633425560940}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.5, y: 0.2, z: -2.1923077}
-  m_LocalScale: {x: 5.6666665, y: 1, z: 4.3846154}
+  m_LocalPosition: {x: 8.5, y: 0.2, z: 3.6538463}
+  m_LocalScale: {x: 5.6666665, y: 1, z: 1.4615386}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1143316779529370720}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8762790319460740026
+--- !u!114 &6183052427015957948
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3005840393969524998}
+  m_GameObject: {fileID: 2982326633425560940}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
@@ -729,6 +729,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
   id: 
   weight: 1
+  weaponId: 
+  respawnSeconds: 6
 --- !u!1 &3194284549192745853
 GameObject:
   m_ObjectHideFlags: 0
@@ -913,6 +915,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
   id: 
   weight: 1
+  weaponId: 
+  respawnSeconds: 6
 --- !u!1 &4003878154995245009
 GameObject:
   m_ObjectHideFlags: 0
@@ -1110,52 +1114,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5852215442360420315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &4376416137720490701
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1898358568193496645}
-  - component: {fileID: 911395461242234252}
-  m_Layer: 0
-  m_Name: FoodArea
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1898358568193496645
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4376416137720490701}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: -13.153846}
-  m_LocalScale: {x: 5.6666665, y: 1, z: 2.9230766}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1143316779529370720}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &911395461242234252
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4376416137720490701}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aacf3275e6e17c44b994e97aef373bbe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.FoodArea
-  id: 
-  spacing: 2.4
 --- !u!1 &4683346418763979680
 GameObject:
   m_ObjectHideFlags: 0
@@ -1286,52 +1244,6 @@ MonoBehaviour:
   fillDirection: 1
   heightOverride: 0
   keepBakedMaterial: 0
---- !u!1 &4982116446140218919
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1169353014042723573}
-  - component: {fileID: 1011587045498115694}
-  m_Layer: 0
-  m_Name: WeaponArea
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1169353014042723573
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4982116446140218919}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -8.5, y: 0.2, z: -2.1923077}
-  m_LocalScale: {x: 5.6666665, y: 1, z: 4.3846154}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1143316779529370720}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1011587045498115694
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4982116446140218919}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
-  id: 
-  weight: 1
 --- !u!1 &5357472113079278831
 GameObject:
   m_ObjectHideFlags: 0
@@ -1802,6 +1714,52 @@ MonoBehaviour:
   fillDirection: 3
   heightOverride: 0
   keepBakedMaterial: 0
+--- !u!1 &6245515840216635031
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9100896564727668183}
+  - component: {fileID: 5514901338347793956}
+  m_Layer: 0
+  m_Name: FoodArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9100896564727668183
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6245515840216635031}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.2, z: -13.153846}
+  m_LocalScale: {x: 5.6666665, y: 1, z: 2.9230766}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1143316779529370720}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5514901338347793956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6245515840216635031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aacf3275e6e17c44b994e97aef373bbe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.FoodArea
+  id: 
+  spacing: 2.4
 --- !u!1 &6317550706477821885
 GameObject:
   m_ObjectHideFlags: 0
@@ -1834,11 +1792,11 @@ Transform:
   - {fileID: 3509723511165224186}
   - {fileID: 2101720434081253560}
   - {fileID: 152510523529665258}
-  - {fileID: 2500234713393190886}
-  - {fileID: 1169353014042723573}
-  - {fileID: 7481153376419099113}
+  - {fileID: 5844901384306840194}
+  - {fileID: 5588707889707440887}
+  - {fileID: 1330037377136688773}
   - {fileID: 324241866363548131}
-  - {fileID: 1898358568193496645}
+  - {fileID: 9100896564727668183}
   m_Father: {fileID: 5852215442360420315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6460394034830887637
@@ -1905,7 +1863,7 @@ Transform:
   - {fileID: 4130400960447337537}
   m_Father: {fileID: 5852215442360420315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &8002840208394941458
+--- !u!1 &7518714420274123047
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1913,8 +1871,8 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2500234713393190886}
-  - component: {fileID: 801149880974250887}
+  - component: {fileID: 5588707889707440887}
+  - component: {fileID: 8203588513051534780}
   m_Layer: 0
   m_Name: WeaponArea
   m_TagString: Untagged
@@ -1922,28 +1880,28 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2500234713393190886
+--- !u!4 &5588707889707440887
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8002840208394941458}
+  m_GameObject: {fileID: 7518714420274123047}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.5, y: 0.2, z: 3.6538463}
-  m_LocalScale: {x: 5.6666665, y: 1, z: 1.4615386}
+  m_LocalPosition: {x: -8.5, y: 0.2, z: -2.1923077}
+  m_LocalScale: {x: 5.6666665, y: 1, z: 4.3846154}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1143316779529370720}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &801149880974250887
+--- !u!114 &8203588513051534780
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8002840208394941458}
+  m_GameObject: {fileID: 7518714420274123047}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
@@ -1951,6 +1909,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
   id: 
   weight: 1
+  weaponId: 
+  respawnSeconds: 6
 --- !u!1 &8121016613207231191
 GameObject:
   m_ObjectHideFlags: 0
@@ -2112,6 +2072,54 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5852215442360420315}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8571193805722074001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1330037377136688773}
+  - component: {fileID: 8885684218626944383}
+  m_Layer: 0
+  m_Name: WeaponArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1330037377136688773
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8571193805722074001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 8.5, y: 0.2, z: -2.1923077}
+  m_LocalScale: {x: 5.6666665, y: 1, z: 4.3846154}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1143316779529370720}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8885684218626944383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8571193805722074001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7c91ae9f8fe73e4682c1c3b580b7e8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Arena.Authored.WeaponSpawnArea
+  id: 
+  weight: 1
+  weaponId: 
+  respawnSeconds: 6
 --- !u!1 &8746218807169119116
 GameObject:
   m_ObjectHideFlags: 0
@@ -2320,7 +2328,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4e0b131f8804dcf4eab3dddf78277251, type: 3}
   m_PrefabInstance: {fileID: 2520048156793082800}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &9130674103043751817
+--- !u!1001 &5825958327316657139
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -2393,8 +2401,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4e0b131f8804dcf4eab3dddf78277251, type: 3}
---- !u!4 &8735878014937241698 stripped
+--- !u!4 &6292460267528606744 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4e0b131f8804dcf4eab3dddf78277251, type: 3}
-  m_PrefabInstance: {fileID: 9130674103043751817}
+  m_PrefabInstance: {fileID: 5825958327316657139}
   m_PrefabAsset: {fileID: 0}
