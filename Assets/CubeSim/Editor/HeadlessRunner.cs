@@ -29,7 +29,7 @@ namespace CubeSim.EditorTools
         private const string ActiveKey = "CubeSim.Headless.Active";
         private const string LookKey = "CubeSim.Headless.Look";
         private const string MaxSecondsKey = "CubeSim.Headless.MaxSeconds";
-        private const int MaxFrames = 60 * 360;
+        private const int MaxFrames = 60 * 60 * 25; // safety net only: a long-form episode runs ~9-12 min
 
         private static HeadlessFrameGrabber _grabber;
         private static OfflineAudioTrack _audio;
