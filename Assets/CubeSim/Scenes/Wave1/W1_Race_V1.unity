@@ -119,6 +119,103 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &307530073
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 307530074}
+  - component: {fileID: 307530075}
+  m_Layer: 0
+  m_Name: SimulationLight
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &307530074
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 307530073}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.5037833, y: 0.17821512, z: -0.10708244, w: 0.8384362}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 505089731}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!108 &307530075
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 307530073}
+  m_Enabled: 1
+  serializedVersion: 12
+  m_Type: 1
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Intensity: 1.05
+  m_Range: 10
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize2D: {x: 0.5, y: 0.5}
+  m_Shadows:
+    m_Type: 2
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 0.35
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_UseViewFrustumForShadowCasterCull: 1
+  m_ForceVisible: 0
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
+  m_LightUnit: 1
+  m_LuxAtDistance: 1
+  m_EnableSpotReflector: 1
 --- !u!1 &505089728
 GameObject:
   m_ObjectHideFlags: 0
@@ -167,7 +264,7 @@ MonoBehaviour:
   configAsset: {fileID: 0}
   jsonConfigPath: 
   inlineConfig:
-    seed: 985346
+    seed: 414904
     simulation:
       fixedTimeStep: 0.016666668
       applyFixedTimeStep: 1
@@ -176,7 +273,7 @@ MonoBehaviour:
       groundY: 0
     arena:
       mode: 1
-      arenaId: RC30
+      arenaId: RC13
       size: {x: 52, y: 30}
       wallHeight: 2.4
       wallThickness: 1.2
@@ -467,7 +564,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1165755771}
+  - {fileID: 307530074}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &505089732
@@ -483,8 +580,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: CubeSim.Runtime::CubeSim.Core.EpisodeDirector
   rounds:
-  - arenaId: RC12
-    seed: 985408
+  - arenaId: RC16
+    seed: 366556
     winCondition: 1
     maxDuration: 300
     pressureTargetInset: 54
@@ -507,8 +604,8 @@ MonoBehaviour:
     racerSpeed: 0
     floorColor: {r: 0, g: 0, b: 0, a: 0}
     wallColor: {r: 0, g: 0, b: 0, a: 0}
-  - arenaId: RC06
-    seed: 111616
+  - arenaId: RC07
+    seed: 756590
     winCondition: 1
     maxDuration: 300
     pressureTargetInset: 54
@@ -531,128 +628,8 @@ MonoBehaviour:
     racerSpeed: 0
     floorColor: {r: 0, g: 0, b: 0, a: 0}
     wallColor: {r: 0, g: 0, b: 0, a: 0}
-  - arenaId: RC17
-    seed: 581084
-    winCondition: 1
-    maxDuration: 300
-    pressureTargetInset: 54
-    pressureStartDelay: 10
-    pressureSpeed: 0.5
-    pressureProfile: 2
-    pressureTargetInsetZ: 12
-    maxHealth: 0
-    weaponCount: 0
-    racerCount: 0
-    teamCount: 0
-    portrait: 0
-    requiredFinishers: 3
-    modeKind: 0
-    ruleLabel: 
-    paletteIndices: 
-    eliminateCount: 0
-    grandPrix: 0
-    finalOfWinners: 0
-    racerSpeed: 0
-    floorColor: {r: 0, g: 0, b: 0, a: 0}
-    wallColor: {r: 0, g: 0, b: 0, a: 0}
-  - arenaId: RC02
-    seed: 507612
-    winCondition: 1
-    maxDuration: 300
-    pressureTargetInset: 54
-    pressureStartDelay: 10
-    pressureSpeed: 0.5
-    pressureProfile: 2
-    pressureTargetInsetZ: 12
-    maxHealth: 0
-    weaponCount: 0
-    racerCount: 0
-    teamCount: 0
-    portrait: 0
-    requiredFinishers: 3
-    modeKind: 0
-    ruleLabel: 
-    paletteIndices: 
-    eliminateCount: 0
-    grandPrix: 0
-    finalOfWinners: 0
-    racerSpeed: 0
-    floorColor: {r: 0, g: 0, b: 0, a: 0}
-    wallColor: {r: 0, g: 0, b: 0, a: 0}
-  - arenaId: RC05
-    seed: 639912
-    winCondition: 1
-    maxDuration: 300
-    pressureTargetInset: 54
-    pressureStartDelay: 10
-    pressureSpeed: 0.5
-    pressureProfile: 2
-    pressureTargetInsetZ: 12
-    maxHealth: 0
-    weaponCount: 0
-    racerCount: 0
-    teamCount: 0
-    portrait: 0
-    requiredFinishers: 3
-    modeKind: 0
-    ruleLabel: 
-    paletteIndices: 
-    eliminateCount: 0
-    grandPrix: 0
-    finalOfWinners: 0
-    racerSpeed: 0
-    floorColor: {r: 0, g: 0, b: 0, a: 0}
-    wallColor: {r: 0, g: 0, b: 0, a: 0}
-  - arenaId: RC01
-    seed: 948902
-    winCondition: 1
-    maxDuration: 300
-    pressureTargetInset: 54
-    pressureStartDelay: 10
-    pressureSpeed: 0.5
-    pressureProfile: 2
-    pressureTargetInsetZ: 12
-    maxHealth: 0
-    weaponCount: 0
-    racerCount: 0
-    teamCount: 0
-    portrait: 0
-    requiredFinishers: 3
-    modeKind: 0
-    ruleLabel: 
-    paletteIndices: 
-    eliminateCount: 0
-    grandPrix: 0
-    finalOfWinners: 0
-    racerSpeed: 0
-    floorColor: {r: 0, g: 0, b: 0, a: 0}
-    wallColor: {r: 0, g: 0, b: 0, a: 0}
-  - arenaId: RC10
-    seed: 586764
-    winCondition: 1
-    maxDuration: 300
-    pressureTargetInset: 54
-    pressureStartDelay: 10
-    pressureSpeed: 0.5
-    pressureProfile: 2
-    pressureTargetInsetZ: 12
-    maxHealth: 0
-    weaponCount: 0
-    racerCount: 0
-    teamCount: 0
-    portrait: 0
-    requiredFinishers: 3
-    modeKind: 0
-    ruleLabel: 
-    paletteIndices: 
-    eliminateCount: 0
-    grandPrix: 0
-    finalOfWinners: 0
-    racerSpeed: 0
-    floorColor: {r: 0, g: 0, b: 0, a: 0}
-    wallColor: {r: 0, g: 0, b: 0, a: 0}
-  - arenaId: RC27
-    seed: 549074
+  - arenaId: RC04
+    seed: 133808
     winCondition: 1
     maxDuration: 300
     pressureTargetInset: 54
@@ -676,7 +653,7 @@ MonoBehaviour:
     floorColor: {r: 0, g: 0, b: 0, a: 0}
     wallColor: {r: 0, g: 0, b: 0, a: 0}
   - arenaId: RC28
-    seed: 788502
+    seed: 233821
     winCondition: 1
     maxDuration: 300
     pressureTargetInset: 54
@@ -699,8 +676,8 @@ MonoBehaviour:
     racerSpeed: 0
     floorColor: {r: 0, g: 0, b: 0, a: 0}
     wallColor: {r: 0, g: 0, b: 0, a: 0}
-  - arenaId: RC20
-    seed: 199015
+  - arenaId: RC12
+    seed: 637511
     winCondition: 1
     maxDuration: 300
     pressureTargetInset: 54
@@ -723,8 +700,8 @@ MonoBehaviour:
     racerSpeed: 0
     floorColor: {r: 0, g: 0, b: 0, a: 0}
     wallColor: {r: 0, g: 0, b: 0, a: 0}
-  - arenaId: RC09
-    seed: 141432
+  - arenaId: RC06
+    seed: 456810
     winCondition: 1
     maxDuration: 300
     pressureTargetInset: 54
@@ -747,8 +724,128 @@ MonoBehaviour:
     racerSpeed: 0
     floorColor: {r: 0, g: 0, b: 0, a: 0}
     wallColor: {r: 0, g: 0, b: 0, a: 0}
-  - arenaId: RC30
-    seed: 985338
+  - arenaId: RC18
+    seed: 775775
+    winCondition: 1
+    maxDuration: 300
+    pressureTargetInset: 54
+    pressureStartDelay: 10
+    pressureSpeed: 0.5
+    pressureProfile: 2
+    pressureTargetInsetZ: 12
+    maxHealth: 0
+    weaponCount: 0
+    racerCount: 0
+    teamCount: 0
+    portrait: 0
+    requiredFinishers: 3
+    modeKind: 0
+    ruleLabel: 
+    paletteIndices: 
+    eliminateCount: 0
+    grandPrix: 0
+    finalOfWinners: 0
+    racerSpeed: 0
+    floorColor: {r: 0, g: 0, b: 0, a: 0}
+    wallColor: {r: 0, g: 0, b: 0, a: 0}
+  - arenaId: RC21
+    seed: 538984
+    winCondition: 1
+    maxDuration: 300
+    pressureTargetInset: 54
+    pressureStartDelay: 10
+    pressureSpeed: 0.5
+    pressureProfile: 2
+    pressureTargetInsetZ: 12
+    maxHealth: 0
+    weaponCount: 0
+    racerCount: 0
+    teamCount: 0
+    portrait: 0
+    requiredFinishers: 3
+    modeKind: 0
+    ruleLabel: 
+    paletteIndices: 
+    eliminateCount: 0
+    grandPrix: 0
+    finalOfWinners: 0
+    racerSpeed: 0
+    floorColor: {r: 0, g: 0, b: 0, a: 0}
+    wallColor: {r: 0, g: 0, b: 0, a: 0}
+  - arenaId: RC19
+    seed: 660380
+    winCondition: 1
+    maxDuration: 300
+    pressureTargetInset: 54
+    pressureStartDelay: 10
+    pressureSpeed: 0.5
+    pressureProfile: 2
+    pressureTargetInsetZ: 12
+    maxHealth: 0
+    weaponCount: 0
+    racerCount: 0
+    teamCount: 0
+    portrait: 0
+    requiredFinishers: 3
+    modeKind: 0
+    ruleLabel: 
+    paletteIndices: 
+    eliminateCount: 0
+    grandPrix: 0
+    finalOfWinners: 0
+    racerSpeed: 0
+    floorColor: {r: 0, g: 0, b: 0, a: 0}
+    wallColor: {r: 0, g: 0, b: 0, a: 0}
+  - arenaId: RC15
+    seed: 504223
+    winCondition: 1
+    maxDuration: 300
+    pressureTargetInset: 54
+    pressureStartDelay: 10
+    pressureSpeed: 0.5
+    pressureProfile: 2
+    pressureTargetInsetZ: 12
+    maxHealth: 0
+    weaponCount: 0
+    racerCount: 0
+    teamCount: 0
+    portrait: 0
+    requiredFinishers: 3
+    modeKind: 0
+    ruleLabel: 
+    paletteIndices: 
+    eliminateCount: 0
+    grandPrix: 0
+    finalOfWinners: 0
+    racerSpeed: 0
+    floorColor: {r: 0, g: 0, b: 0, a: 0}
+    wallColor: {r: 0, g: 0, b: 0, a: 0}
+  - arenaId: RC24
+    seed: 913308
+    winCondition: 1
+    maxDuration: 300
+    pressureTargetInset: 54
+    pressureStartDelay: 10
+    pressureSpeed: 0.5
+    pressureProfile: 2
+    pressureTargetInsetZ: 12
+    maxHealth: 0
+    weaponCount: 0
+    racerCount: 0
+    teamCount: 0
+    portrait: 0
+    requiredFinishers: 3
+    modeKind: 0
+    ruleLabel: 
+    paletteIndices: 
+    eliminateCount: 0
+    grandPrix: 0
+    finalOfWinners: 0
+    racerSpeed: 0
+    floorColor: {r: 0, g: 0, b: 0, a: 0}
+    wallColor: {r: 0, g: 0, b: 0, a: 0}
+  - arenaId: RC13
+    seed: 414896
     winCondition: 1
     maxDuration: 300
     pressureTargetInset: 54
@@ -823,103 +920,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1165755770
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1165755771}
-  - component: {fileID: 1165755772}
-  m_Layer: 0
-  m_Name: SimulationLight
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1165755771
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1165755770}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.5037833, y: 0.17821512, z: -0.10708244, w: 0.8384362}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 505089731}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!108 &1165755772
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1165755770}
-  m_Enabled: 1
-  serializedVersion: 12
-  m_Type: 1
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1.05
-  m_Range: 10
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize2D: {x: 0.5, y: 0.5}
-  m_Shadows:
-    m_Type: 2
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 0.35
-    m_Bias: 0.05
-    m_NormalBias: 0.4
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShadowRadius: 0
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
 --- !u!1 &1208322856
 GameObject:
   m_ObjectHideFlags: 0
