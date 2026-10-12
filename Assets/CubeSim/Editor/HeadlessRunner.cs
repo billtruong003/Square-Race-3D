@@ -27,6 +27,8 @@ namespace CubeSim.EditorTools
     {
         private const string QueueFile = "Temp/cubesim_headless_queue.txt";
         private const string ActiveKey = "CubeSim.Headless.Active";
+        private const string LookKey = "CubeSim.Headless.Look";
+        private const string MaxSecondsKey = "CubeSim.Headless.MaxSeconds";
         private const int MaxFrames = 60 * 360;
 
         private static HeadlessFrameGrabber _grabber;
@@ -72,6 +74,34 @@ namespace CubeSim.EditorTools
             catch (System.Exception e)
             {
                 Debug.LogError("[CubeSim] Headless build failed: " + e);
+                EditorApplication.Exit(1);
+            }
+        }
+
+        /// <summary>
+        /// -cubesimScenes W1_Race_V1,W1_Sudden_V1 [-cubesimScout] [-cubesimRebuildMaps]: rebuilds those
+        /// Wave 1 video scenes (maps too when asked, which re-cuts every landscape prefab).
+        /// </summary>
+        public static void BuildWave1()
+        {
+            try
+            {
+                if (Flag("-cubesimRebuildMaps") && !Wave1PlanBuilder.BuildMaps())
+                {
+                    EditorApplication.Exit(1);
+                    return;
+                }
+
+                string raw = Arg("-cubesimScenes");
+                HashSet<string> names = string.IsNullOrEmpty(raw) ? null
+                    : new HashSet<string>(raw.Split(',').Select(x => x.Trim()).Where(x => x.Length > 0));
+                Wave1PlanBuilder.BuildScenes(names == null ? (System.Func<string, bool>)null : n => names.Contains(n), Flag("-cubesimScout"));
+                AssetDatabase.SaveAssets();
+                EditorApplication.Exit(0);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("[CubeSim] Headless Wave 1 build failed: " + e);
                 EditorApplication.Exit(1);
             }
         }
@@ -136,6 +166,12 @@ namespace CubeSim.EditorTools
             // Silent machine: the video's audio is mixed offline from clip data, never from the speakers.
             EditorUtility.audioMasterMute = true;
             AudioListener.volume = 0f;
+            // Optional look for this batch (CleanPastel, PunchyArcade, SoftToy, NightNeon, Original).
+            string look = Arg("-cubesimLook");
+            if (!string.IsNullOrEmpty(look)) LookProfileBuilder.Select(look == "Original" ? null : look);
+            SessionState.SetString(LookKey, string.IsNullOrEmpty(look) ? "" : look);
+            SessionState.SetInt(MaxSecondsKey, int.TryParse(Arg("-cubesimMaxSeconds"), out int cap) ? cap : 0);
+
             Directory.CreateDirectory("Temp");
             File.WriteAllLines(QueueFile, raw.Split(',').Select(s => s.Trim()).Where(s => s.Length > 0));
             Next();
@@ -205,7 +241,8 @@ namespace CubeSim.EditorTools
             string scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
             string folder = Path.Combine(Path.GetDirectoryName(Application.dataPath), "Recordings", "review");
             Directory.CreateDirectory(folder);
-            string stem = Path.Combine(folder, $"{scene}_{System.DateTime.Now:yyyyMMdd_HHmmss}");
+            string look = SessionState.GetString(LookKey, "");
+            string stem = Path.Combine(folder, $"{scene}{(look.Length > 0 ? "_" + look : "")}_{System.DateTime.Now:yyyyMMdd_HHmmss}");
 
             var director = Object.FindFirstObjectByType<EpisodeDirector>();
             bool portrait = director != null && director.Rounds.Count > 0 && director.Rounds[0].portrait;
@@ -227,7 +264,9 @@ namespace CubeSim.EditorTools
         {
             if (_grabber == null || !EditorApplication.isPlaying) return;
 
-            bool done = _grabber.Failed || _grabber.FramesWritten > MaxFrames;
+            int capSeconds = SessionState.GetInt(MaxSecondsKey, 0);
+            int cap = capSeconds > 0 ? capSeconds * 60 : MaxFrames;
+            bool done = _grabber.Failed || _grabber.FramesWritten > cap;
             var director = Object.FindFirstObjectByType<EpisodeDirector>();
             if (director != null && director.Finished)
             {

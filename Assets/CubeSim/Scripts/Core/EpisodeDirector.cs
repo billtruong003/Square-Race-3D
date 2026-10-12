@@ -276,7 +276,7 @@ namespace CubeSim.Core
                 }
 
                 _bootstrap.Paused = true;
-                _cards.ShowWinner(winner, DescribeOutcome(result), result.winnerName);
+                _cards.ShowWinner(winner, DescribeOutcome(result, round.winCondition), result.winnerName);
                 yield return new WaitForSecondsRealtime(winnerCardDuration);
 
                 if (round.grandPrix)
@@ -549,8 +549,21 @@ namespace CubeSim.Core
             return colors;
         }
 
-        private static string DescribeOutcome(SimulationResult result)
+        private static string DescribeOutcome(SimulationResult result, WinCondition rule)
         {
+            // Score rules crown through RecordWinner too, so the outcome alone said "last one standing".
+            if (result.outcome == SimulationOutcome.Winner)
+            {
+                switch (rule)
+                {
+                    case WinCondition.MostCoins: return "most coins";
+                    case WinCondition.MostTiles: return "most floor painted";
+                    case WinCondition.LastClean: return "last one clean";
+                    case WinCondition.ReachGoal:
+                    case WinCondition.TeamFinishers: return "closest to the goal";
+                }
+            }
+
             switch (result.outcome)
             {
                 case SimulationOutcome.GoalReached: return "first to the goal";

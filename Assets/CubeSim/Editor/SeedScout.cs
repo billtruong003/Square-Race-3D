@@ -51,28 +51,34 @@ namespace CubeSim.EditorTools
         }
 
         /// <summary>Plays every candidate seed headless and scores each one.</summary>
-        public static List<Result> Evaluate(string arenaId, ShortsPlanBuilder.Tuning tune, int baseSeed, int candidates)
+        public static List<Result> Evaluate(string arenaId, ShortsPlanBuilder.Tuning tune, int baseSeed, int candidates) =>
+            Evaluate(ShortsPlanBuilder.RoundFor(arenaId, tune, baseSeed), baseSeed, candidates, 22f, 45f);
+
+        public static Result Pick(EpisodeDirector.RoundSpec round, int baseSeed, int candidates, float idealMin, float idealMax)
+        {
+            List<Result> results = Evaluate(round, baseSeed, candidates, idealMin, idealMax);
+            if (results == null) return null;
+            Result best = null;
+            foreach (Result r in results) if (best == null || r.Score > best.Score) best = r;
+            return best;
+        }
+
+        /// <summary>
+        /// Scores candidate seeds for one round spec, applied exactly as the director applies it.
+        /// The ideal length band differs: a Short wants 22-45 s, a long-form round 25-70 s.
+        /// </summary>
+        public static List<Result> Evaluate(EpisodeDirector.RoundSpec round, int baseSeed, int candidates,
+            float idealMin, float idealMax)
         {
             var spec = new ModeLab.Spec
             {
-                ArenaId = arenaId,
-                Mode = tune.Mode,
-                Win = tune.Win,
-                Racers = tune.Racers,
-                Teams = tune.Teams,
-                Weapons = tune.Weapons,
-                MaxHealth = tune.MaxHealth > 0f ? tune.MaxHealth : 3f,
-                MaxDuration = Mathf.Min(tune.Duration, 150f),
-                RequiredFinishers = tune.Finishers,
-                Pressure = tune.Pressure,
-                PressureDelay = tune.PressureDelay,
-                PressureSpeed = tune.PressureSpeed,
-                InsetX = tune.InsetX,
-                InsetZ = tune.InsetZ,
-                Round = ShortsPlanBuilder.RoundFor(arenaId, tune, baseSeed),
+                ArenaId = round.arenaId,
+                MaxDuration = Mathf.Min(round.maxDuration > 0f ? round.maxDuration : 300f, 150f),
+                Round = round,
             };
-
-            bool race = tune.Win == WinCondition.ReachGoal || tune.Win == WinCondition.TeamFinishers;
+            string arenaId = round.arenaId;
+            WinCondition win = round.winCondition;
+            bool race = win == WinCondition.ReachGoal || win == WinCondition.TeamFinishers;
             var results = new List<Result>(candidates);
             Track track = null;
 
@@ -86,7 +92,7 @@ namespace CubeSim.EditorTools
                     },
                     (runner, stat) =>
                     {
-                        results.Add(Score(runner, stat, track ?? new Track(), race, tune.Win == WinCondition.MostCoins));
+                        results.Add(Score(runner, stat, track ?? new Track(), race, win == WinCondition.MostCoins, idealMin, idealMax));
                         track = null;
                     });
             }
@@ -136,7 +142,8 @@ namespace CubeSim.EditorTools
             t.Pending = -1;
         }
 
-        private static Result Score(SimulationRunner runner, ModeLab.RoundStat stat, Track t, bool race, bool clock)
+        private static Result Score(SimulationRunner runner, ModeLab.RoundStat stat, Track t, bool race, bool clock,
+            float idealMin, float idealMax)
         {
             float seconds = runner.ElapsedTime;
             var r = new Result
@@ -179,7 +186,7 @@ namespace CubeSim.EditorTools
             if (runner.Result.outcome == SimulationOutcome.Draw) score -= 100f;
 
             // A Short wants 22-45 s of play; long rounds lose a little per second over.
-            float ideal = clock ? seconds : Mathf.Clamp(seconds, 22f, 45f);
+            float ideal = clock ? seconds : Mathf.Clamp(seconds, idealMin, idealMax);
             score -= Mathf.Abs(seconds - ideal) * 0.6f;
 
             score += r.LeadChanges * 1.5f + r.LateLeadChanges * 4f;

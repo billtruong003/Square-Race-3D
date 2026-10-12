@@ -65,7 +65,7 @@ namespace CubeSim.EditorTools
                 WeaponCount = 2, RacerCount = 20, TeamCount = 2,
                 Pressure = EpisodeDirector.PressureProfile.Collapse,
                 PressureDelay = 20f, PressureSpeed = 0.45f, PressureInsetX = 33f, PressureInsetZ = 16f,
-                BreakableHits = 60,   // one merged pen door vs ten racers (~2.5-5 hits/s): sealed 12-24s
+                BreakableHits = 30,   // one merged pen door vs ten racers: sealed ~6-12s (60 dragged rounds out)
             },
             // F03 Race: goal mandatory, squeeze never kills, and NO knives - killing racers
             // just thins the field that has to open the course. Rounds run ~28s, so a nine
@@ -138,18 +138,24 @@ namespace CubeSim.EditorTools
                 WeaponCount = 2, RacerCount = 20, TeamCount = 4,
                 Pressure = EpisodeDirector.PressureProfile.Collapse,
                 PressureDelay = 25f, PressureSpeed = 0.45f, PressureInsetX = 33f, PressureInsetZ = 16f,
-                BreakableHits = 60,
+                BreakableHits = 30,
             },
         };
 
         [MenuItem("CubeSim/Build Wave 1 (formats + 12 videos)", priority = 4)]
         public static void BuildAll()
         {
+            if (BuildMaps()) BuildScenes();
+        }
+
+        /// <summary>Re-cuts every Wave 1 map prefab from its ASCII template.</summary>
+        public static bool BuildMaps()
+        {
             var library = AssetDatabase.LoadAssetAtPath<AuthoredArenaLibrary>(SerpentineMapBuilder.LibraryPath);
             if (library == null)
             {
                 Debug.LogError("[CubeSim] Arena library missing; build the map pack first.");
-                return;
+                return false;
             }
 
             var entries = new List<AuthoredArenaLibrary.Entry>();
@@ -184,11 +190,16 @@ namespace CubeSim.EditorTools
             library.SetEntries(entries);
             EditorUtility.SetDirty(library);
             AssetDatabase.SaveAssets();
-
-            BuildScenes();
+            return true;
         }
 
-        private static void BuildScenes()
+        private static void BuildScenes() => BuildScenes(null, false);
+
+        /// <summary>
+        /// Builds the Wave 1 video scenes whose name passes <paramref name="include"/> (null = all).
+        /// With <paramref name="scout"/>, every round's seed is the best of a batch of headless runs.
+        /// </summary>
+        public static void BuildScenes(System.Func<string, bool> include, bool scout)
         {
             System.IO.Directory.CreateDirectory(SceneFolder);
 
@@ -214,6 +225,13 @@ namespace CubeSim.EditorTools
                     }
 
                     string name = $"W1_{format.Tag}_V{v + 1}";
+                    if (include != null && !include(name))
+                    {
+                        // Keep the draw sequence identical so other videos' seeds do not shift.
+                        for (int i = format.Maps.Length - 1; i > 0; i--) draw.Next(i + 1);
+                        for (int r = 0; r < Mathf.Max(1, format.Rounds); r++) draw.Next(100000, 999999);
+                        continue;
+                    }
                     report.Append($"  {name}:");
 
                     int roundCount = Mathf.Max(1, format.Rounds);
@@ -253,6 +271,16 @@ namespace CubeSim.EditorTools
                         spec.pressureSpeed = format.PressureSpeed;
                         spec.pressureTargetInset = format.PressureInsetX;
                         spec.pressureTargetInsetZ = format.PressureInsetZ;
+
+                        if (scout)
+                        {
+                            SeedScout.Result best = SeedScout.Pick(spec, seed, 10, 25f, 70f);
+                            if (best != null)
+                            {
+                                spec.seed = best.Seed;
+                                report.Append($"({best.Score:F0})");
+                            }
+                        }
 
                         rounds.Add(spec);
                     }

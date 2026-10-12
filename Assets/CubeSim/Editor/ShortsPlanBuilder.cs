@@ -69,7 +69,7 @@ namespace CubeSim.EditorTools
                     bool fourWay = map == "TW11" || map == "TW12" || map == "TW13" ||
                                    map == "TW16" || map == "TW17" || map == "TW18";
                     return new Tuning { Win = WinCondition.LastTeamAlive, Duration = 300f, MaxHealth = 2f, Weapons = 2,
-                        Racers = 20, Teams = fourWay ? 4 : 2, BreakableHits = 40,
+                        Racers = 20, Teams = fourWay ? 4 : 2, BreakableHits = 20,
                         Pressure = EpisodeDirector.PressureProfile.Collapse, PressureDelay = 8f, PressureSpeed = 0.45f, InsetX = 16f, InsetZ = 33f };
                 case "LB":
                     // Lucky Block: no knife on the floor, every weapon comes out of a crate.
