@@ -43,7 +43,7 @@ namespace CubeSim.Visuals
             {
                 FileName = "ffmpeg",
                 Arguments = $"-y -loglevel error -f rawvideo -pix_fmt rgb24 -s {Width}x{Height} -r {Fps} -i - " +
-                            $"-vf vflip -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p \"{OutputPath}\"",
+                            $"-vf vflip -c:v libx264 -preset veryfast -crf 18 -threads 2 -pix_fmt yuv420p \"{OutputPath}\"",
                 UseShellExecute = false,
                 CreateNoWindow = true,
                 RedirectStandardInput = true,
